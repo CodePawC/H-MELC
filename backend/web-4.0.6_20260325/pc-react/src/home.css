@@ -1,0 +1,93 @@
+.container {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+h3 {
+  text-align: left;
+}
+
+.content {
+  border: solid 1px #ced4da;
+  padding: 8px;
+  text-align: left;
+}
+
+button {
+  margin-left: 8px;
+  margin-right: 0px;
+  display: inline;
+  padding: 8px;
+  background-color: #409eff;
+  border-color: #409eff;
+  border: 1px;
+  border-radius: 4px;
+  color: #fff;
+}
+
+button:hover {
+  background-color: #75baff;
+  border-color: #75baff;
+}
+
+button:active {
+  background-color: #1866b4;
+  border-color: #1866b4;
+}
+
+span {
+  color: red;
+  font-style: italic;
+  font-weight: bold;
+  text-decoration: underline;
+}
+
+.status {
+  display: inline;
+}
+
+.service_status,
+.init_status,
+.connect_usb .usb_printer_connect_status,
+.connect_wifi .wifi_printer_connect_status,
+.select_usb .select_printer,
+.select_wifi .select_printer {
+  border: solid 1px #ced4da;
+  background-color: #e9ecef;
+  border-radius: 4px;
+  font-size: 14px;
+  padding: 6px;
+}
+
+.service,
+.init,
+.select_usb,
+.select_wifi,
+.connect_usb,
+.connect_wifi,
+.wifi_printer_setting,
+.wifi_printer_setting .setOrGet,
+.print {
+  margin-top: 16px;
+}
+
+.print_label {
+  margin-left: 10px;
+  margin-top: 8px;
+}
+
+#wifi_password {
+  margin-left: 16px;
+}
+
+.preview_container {
+  margin-top: 16px;
+}
+
+img {
+  border: solid 1px #ced4da;
+}

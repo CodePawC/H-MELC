@@ -1,0 +1,90 @@
+# 医院医学装备数字化治理平台 · 知识库总索引
+# 约定：每个知识正文文件（如 *.md / *.pdf）旁放置同名元数据：basename.meta.yaml
+# 正文由 RAG/检索消费，元数据用于过滤、权限与目录聚合。
+
+version: 1
+
+# 一级目录说明（与仓库 knowledge-base/ 下文件夹一一对应）
+knowledge_roots:
+  - path: repair_cases/
+    title: 维修案例
+    default_document_type: repair_case
+    description: 设备维修案例、故障排除经验
+
+  - path: manuals/
+    title: 厂家说明书
+    default_document_type: manual
+    description: 说明书、维修手册、电路图等厂商技术资料
+
+  - path: regulations/
+    title: 法规制度
+    default_document_type: regulation
+    description: 放射、辐射、计量、特种设备等法规与院内制度
+
+  - path: adverse_events/
+    title: 不良事件案例
+    default_document_type: adverse_event
+    description: 不良事件调查、FMEA、CAPA 相关材料
+
+  - path: supplier_docs/
+    title: 供应商资料
+    default_document_type: supplier_doc
+    description: 资质、合同、履约与评价类供应商侧文档
+
+  - path: finance_rules/
+    title: 发票付款规则
+    default_document_type: finance_rule
+    description: 发票审核、付款、对账与财务内控规则
+
+  - path: roi_reports/
+    title: 效益分析报告
+    default_document_type: roi_report
+    description: 设备 ROI、调拨与采购论证类分析
+
+# 元数据字段说明（*.meta.yaml 建议包含；未列出的键可按业务扩展）
+metadata_spec:
+  title:
+    required: true
+    description: 文档标题，用于检索结果展示与向量化摘要
+  document_type:
+    required: true
+    description: 文档类型，取值见下方枚举，须与所在目录 default_document_type 一致或为其子类扩展名
+    enum:
+      - repair_case
+      - manual
+      - regulation
+      - adverse_event
+      - supplier_doc
+      - finance_rule
+      - roi_report
+  manufacturer:
+    required: false
+    description: 生产厂家（设备类文档建议填写）
+  model:
+    required: false
+    description: 设备型号或产品系列
+  asset_category:
+    required: false
+    description: 资产/设备分类编码（建议与主数据体系对齐，如 patient_monitor）
+  visibility_scope:
+    required: true
+    description: 可见范围角色/场景标签，用于门户与 API 过滤
+    examples: [engineer, management, finance_dept, supplier, all, authorized]
+  security_level:
+    required: true
+    description: 密级
+    enum: [public, internal, confidential, secret]
+  tags:
+    required: false
+    description: 自由标签列表，支撑 faceted 检索
+  source_uri:
+    required: false
+    description: 外部来源链接或归档编号
+  effective_date:
+    required: false
+    description: 制度/规则的生效日期（ISO-8601 日期）
+
+# 已登记的知识文件（ ingestion / 巡检脚本可校验 meta 是否存在）
+indexed_documents:
+  - content_path: repair_cases/mindray_ipm12_nibp_fault.md
+    metadata_path: repair_cases/mindray_ipm12_nibp_fault.meta.yaml

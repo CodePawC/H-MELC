@@ -1,0 +1,13 @@
+# 将本文件复制为「与正文同名」的 .meta.yaml 后逐项填写。
+# document_type 须与所在目录默认类型一致或为业务约定的子类型。
+
+title: ""
+document_type: repair_case # manual | regulation | adverse_event | supplier_doc | finance_rule | roi_report
+manufacturer: ""
+model: ""
+asset_category: ""
+visibility_scope: engineer # 示例：engineer | management | finance_dept | supplier | all | authorized
+security_level: internal # public | internal | confidential | secret
+tags: []
+# source_uri: ""
+# effective_date: "2026-01-01"

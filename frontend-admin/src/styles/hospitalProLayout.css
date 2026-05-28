@@ -1,0 +1,1629 @@
+/**
+ * 对齐 frontend-admin/dashboard.html · Ant Design Pro 医院后台全宽与侧栏细节
+ */
+
+:root {
+  /* 与 dashboard-confirm.html --header-h、顶栏 HospitalHeaderBar 一致 */
+  --hospital-header-row-height: 56px;
+  --hospital-sider-scrollbar-gutter: 10px;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  margin: 0;
+  height: 100%;
+}
+
+/* 管理端整页占满视口，避免 window 滚动把顶栏一起带走 */
+.ant-design-pro.ant-pro-layout {
+  min-height: 100vh;
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+}
+
+.ant-pro-layout {
+  min-height: 100vh;
+}
+
+/* 右侧主列：顶栏与告警不随正文滚动，仅 hospital-main-scroll 滚动 */
+.ant-layout-has-sider {
+  min-height: 100vh;
+  height: 100%;
+  overflow: hidden;
+}
+
+.ant-layout-has-sider > .ant-layout {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.ant-pro-layout-container {
+  flex: 1 !important;
+  min-width: 0 !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.ant-pro-layout .ant-pro-layout-content {
+  max-width: none !important;
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+}
+
+.hospital-main-column {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 登录信息、会话告警：固定在上半区；顶栏搜索由 HospitalHeaderBar 的 IOC Command Search 承载 */
+.hospital-main-chrome {
+  flex-shrink: 0;
+  background: #f5f7fa;
+  border-bottom: 1px solid #e5e7eb;
+  z-index: 10;
+}
+
+.hospital-main-scroll {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 14px 16px 18px;
+  scrollbar-width: none;
+  max-width: 100%;
+}
+
+.hospital-main-scroll::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.hospital-footer-status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 34px;
+  padding: 6px 12px 8px;
+  border-top: 1px solid #e5e7eb;
+  color: #64748b;
+  background: #f5f7fa;
+  font-size: 12px;
+  line-height: 1;
+}
+
+.hospital-footer-status-bar__brand {
+  min-width: 0;
+  overflow: hidden;
+  color: #475569;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-footer-status-bar__group {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 6px;
+  min-width: 0;
+  color: #94a3b8;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.hospital-footer-status-bar__group strong {
+  color: #334155;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+  white-space: nowrap;
+}
+
+.hospital-footer-status-bar__time {
+  justify-content: flex-end;
+  width: 166px;
+}
+
+.hospital-footer-status-bar__time strong {
+  display: inline-block;
+  width: 132px;
+  text-align: right;
+  letter-spacing: 0;
+}
+
+.hospital-footer-heartbeat {
+  --hospital-footer-heartbeat: #22c55e;
+  position: relative;
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--hospital-footer-heartbeat);
+  box-shadow:
+    0 0 0 3px rgba(34, 197, 94, 0.12),
+    0 0 16px rgba(34, 197, 94, 0.42);
+}
+
+.hospital-footer-heartbeat::after {
+  position: absolute;
+  inset: -5px;
+  border: 1px solid rgba(34, 197, 94, 0.38);
+  border-radius: inherit;
+  content: '';
+  animation: hospital-footer-heartbeat 1.6s ease-out infinite;
+}
+
+@keyframes hospital-footer-heartbeat {
+  0% {
+    opacity: 0.72;
+    transform: scale(0.58);
+  }
+
+  72%,
+  100% {
+    opacity: 0;
+    transform: scale(1.55);
+  }
+}
+
+/* 侧栏：「医学装备管理平台」Logo 区固定，仅下方菜单滚动 */
+.ant-pro-sider.ant-layout-sider .ant-layout-sider-children {
+  display: flex !important;
+  flex-direction: column !important;
+  height: 100% !important;
+  max-height: 100vh !important;
+  overflow: hidden !important;
+}
+
+/* Pro Sider：Logo 与 optional extra 之后第一个承载菜单的滚动容器（flex 子项需 min-height:0 才能内部滚动） */
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra) {
+  min-height: 0 !important;
+  margin-right: calc(var(--hospital-sider-scrollbar-gutter) * -1) !important;
+  padding-right: var(--hospital-sider-scrollbar-gutter) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-color: rgba(186, 230, 253, 0.2) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div {
+  min-height: 0 !important;
+  margin-right: calc(var(--hospital-sider-scrollbar-gutter) * -1) !important;
+  padding-right: var(--hospital-sider-scrollbar-gutter) !important;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+  scrollbar-color: rgba(186, 230, 253, 0.2) transparent;
+  scrollbar-gutter: stable;
+  scrollbar-width: thin;
+}
+
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra)::-webkit-scrollbar,
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div::-webkit-scrollbar {
+  width: 6px;
+}
+
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra)::-webkit-scrollbar-track,
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra)::-webkit-scrollbar-thumb,
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(186, 230, 253, 0.22);
+  background-clip: content-box;
+}
+
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra)::-webkit-scrollbar-thumb:hover,
+.ant-pro-sider .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div::-webkit-scrollbar-thumb:hover {
+  background: rgba(186, 230, 253, 0.34);
+  background-clip: content-box;
+}
+
+/* 深色侧栏（对齐静态原型 linear-gradient #08233f → #071a32） */
+.ant-pro-sider.ant-layout-sider {
+  border-inline-end: 1px solid rgba(148, 163, 184, 0.12) !important;
+  box-shadow: 8px 0 30px rgba(7, 24, 43, 0.18);
+  background:
+    linear-gradient(180deg, rgba(8, 35, 63, 0.98), rgba(7, 26, 50, 0.98)),
+    repeating-linear-gradient(180deg, transparent 0 14px, rgba(56, 189, 248, 0.04) 14px 15px) !important;
+}
+
+/* Logo 区与右侧顶栏同高、固定不随菜单滚动 */
+.ant-pro-sider .ant-pro-sider-logo {
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: var(--hospital-header-row-height);
+  min-height: var(--hospital-header-row-height);
+  max-height: var(--hospital-header-row-height);
+  display: flex !important;
+  align-items: center !important;
+  padding-block: 0 !important;
+  padding-inline: 16px !important;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: transparent !important;
+}
+
+.ant-pro-sider .ant-pro-sider-logo > a {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.ant-pro-sider .ant-pro-sider-logo .hospital-sider-brand {
+  text-decoration: none;
+}
+
+.hospital-sider-brand__text {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.hospital-sider-brand__text strong,
+.hospital-sider-brand__text em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-sider-brand__text strong {
+  color: #f8fafc;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.hospital-sider-brand__text em {
+  color: rgba(186, 230, 253, 0.8);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.ant-pro-sider .ant-pro-sider-logo h1 {
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  color: #f8fafc !important;
+  margin: 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ant-pro-sider .ant-pro-sider-collapsed-button {
+  color: rgba(248, 250, 252, 0.85) !important;
+}
+
+.ant-pro-sider .ant-layout-sider-trigger {
+  background: #071a32 !important;
+  color: #bcd3ef !important;
+  border-top: 1px solid rgba(148, 163, 184, 0.12);
+}
+
+/* 侧栏菜单文字（深色仅限侧栏，不向内容区扩散） */
+.ant-pro-sider .ant-menu-item,
+.ant-pro-sider .ant-menu-submenu-title {
+  height: 34px !important;
+  min-height: 34px !important;
+  line-height: 34px !important;
+  color: #cbd5e1 !important;
+  border-radius: 8px !important;
+  margin-block: 2px !important;
+  margin-inline: 8px !important;
+  padding-block: 0 !important;
+  width: calc(100% - 16px) !important;
+}
+
+.ant-pro-sider .ant-menu-title-content {
+  line-height: 1.15 !important;
+}
+
+.ant-pro-sider .ant-menu-submenu-arrow,
+.ant-pro-sider .ant-menu-item-icon,
+.ant-pro-sider .ant-menu-submenu-title .anticon {
+  line-height: 1 !important;
+}
+
+.ant-pro-sider .ant-menu-item:hover,
+.ant-pro-sider .ant-menu-submenu-title:hover {
+  color: #ffffff !important;
+  background: rgba(22, 119, 255, 0.12) !important;
+  box-shadow: inset 3px 0 0 rgba(56, 189, 248, 0.76), 0 0 18px rgba(22, 119, 255, 0.12);
+}
+
+.ant-pro-sider .hospital-menu-priority > .ant-menu-submenu-title {
+  font-weight: 700 !important;
+  color: #f8fafc !important;
+}
+
+.ant-pro-sider .hospital-menu-priority > .ant-menu-submenu-title .anticon {
+  color: #7dd3fc !important;
+  font-size: 15px !important;
+  filter: drop-shadow(0 0 8px rgba(56, 189, 248, 0.3));
+}
+
+.ant-pro-sider .hospital-menu-priority.ant-menu-submenu-open > .ant-menu-submenu-title,
+.ant-pro-sider .hospital-menu-priority > .ant-menu-submenu-title:hover {
+  background: rgba(22, 119, 255, 0.16) !important;
+  box-shadow: inset 3px 0 0 #38bdf8;
+}
+
+.ant-pro-sider .hospital-menu-secondary > .ant-menu-submenu-title {
+  color: rgba(203, 213, 225, 0.66) !important;
+  font-weight: 500 !important;
+}
+
+.ant-pro-sider .hospital-menu-secondary > .ant-menu-submenu-title .anticon {
+  color: rgba(203, 213, 225, 0.5) !important;
+}
+
+.ant-pro-sider .hospital-menu-secondary .ant-menu-item {
+  opacity: 0.82;
+}
+
+.ant-pro-sider .ant-menu-item-selected {
+  background: linear-gradient(90deg, #1677ff, #13c2c2) !important;
+  box-shadow: 0 10px 24px rgba(22, 119, 255, 0.3), inset 3px 0 0 #ffffff;
+  color: #ffffff !important;
+}
+
+.ant-pro-sider .ant-menu-item-selected:hover {
+  background: linear-gradient(90deg, #1677ff, #13c2c2) !important;
+  color: #ffffff !important;
+}
+
+.ant-pro-sider .ant-menu-submenu-selected > .ant-menu-submenu-title {
+  color: #f8fafc !important;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra),
+.ant-pro-sider.ant-layout-sider-collapsed .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div {
+  margin-right: 0 !important;
+  padding-right: 0 !important;
+  overflow-x: visible !important;
+  scrollbar-width: none;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-layout-sider-children > .ant-pro-sider-logo + div:not(.ant-pro-sider-extra)::-webkit-scrollbar,
+.ant-pro-sider.ant-layout-sider-collapsed .ant-layout-sider-children > .ant-pro-sider-logo + .ant-pro-sider-extra + div::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-pro-sider-logo {
+  justify-content: center;
+  padding-inline: 0 !important;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-pro-sider-logo > a,
+.ant-pro-sider.ant-layout-sider-collapsed .ant-pro-sider-logo .hospital-sider-brand {
+  justify-content: center;
+  width: 100%;
+  gap: 0;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .hospital-sider-brand__text {
+  display: none;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-inline-collapsed {
+  width: 100% !important;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-item,
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-submenu-title {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: calc(100% - 10px) !important;
+  height: 34px !important;
+  margin-inline: 5px !important;
+  padding-inline: 0 !important;
+  overflow: visible !important;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-item-icon,
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-submenu-title .anticon {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  min-width: 22px !important;
+  margin-inline-end: 0 !important;
+  overflow: visible !important;
+  font-size: 16px !important;
+}
+
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-title-content,
+.ant-pro-sider.ant-layout-sider-collapsed .ant-menu-submenu-arrow {
+  display: none !important;
+}
+
+.hospital-top-bar {
+  position: relative;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  height: var(--hospital-header-row-height);
+  min-height: var(--hospital-header-row-height);
+  max-height: var(--hospital-header-row-height);
+  overflow: hidden;
+}
+
+.hospital-ioc-control-zone {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: 8px;
+  max-width: 100%;
+  min-width: 0;
+  margin-left: auto;
+  position: relative;
+  z-index: 2;
+}
+
+.hospital-command-slot {
+  position: relative;
+  left: auto;
+  z-index: 1;
+  width: auto;
+  max-width: 560px;
+  transform: none;
+}
+
+.hospital-status-console,
+.hospital-message-console,
+.hospital-ai-console,
+.hospital-duty-console {
+  position: relative;
+  height: 42px;
+  border: 1px solid rgba(22, 119, 255, 0.18);
+  color: #1f2937;
+  background:
+    radial-gradient(circle at 16% 15%, rgba(19, 194, 194, 0.08), transparent 38%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(238, 243, 248, 0.58));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.74),
+    0 8px 24px rgba(7, 24, 43, 0.05);
+  backdrop-filter: blur(16px) saturate(132%);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    background 180ms ease;
+}
+
+.hospital-status-console:hover,
+.hospital-message-console:hover,
+.hospital-ai-console:hover,
+.hospital-duty-console:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 169, 255, 0.58);
+  background:
+    radial-gradient(circle at 16% 15%, rgba(19, 194, 194, 0.12), transparent 38%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(238, 243, 248, 0.68));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 0 0 3px rgba(22, 119, 255, 0.07),
+    0 12px 28px rgba(7, 24, 43, 0.14);
+}
+
+.hospital-status-console {
+  display: grid;
+  width: 248px;
+  gap: 3px;
+  padding: 5px 10px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.hospital-status-console__title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(22, 119, 255, 0.72);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.hospital-status-console__title .anticon {
+  color: #1677ff;
+}
+
+.hospital-status-console__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.hospital-status-mini {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 3px;
+  color: #1f2937;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.hospital-status-mini b,
+.hospital-status-mini em {
+  overflow: hidden;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-status-mini b {
+  font-weight: 800;
+}
+
+.hospital-status-mini em {
+  color: #64748b;
+  font-weight: 600;
+}
+
+.hospital-ioc-dot {
+  --ioc-dot: #13c2c2;
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: var(--ioc-dot);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ioc-dot), transparent 86%), 0 0 14px
+    color-mix(in srgb, var(--ioc-dot), transparent 36%);
+  animation: hospital-ioc-pulse 1.9s ease-in-out infinite;
+}
+
+.hospital-ioc-dot[data-tone='normal'],
+[data-tone='normal'] > .hospital-ioc-dot,
+[data-tone='normal'] .hospital-ioc-dot {
+  --ioc-dot: #13c2c2;
+}
+
+.hospital-ioc-dot[data-tone='info'],
+[data-tone='info'] > .hospital-ioc-dot,
+[data-tone='info'] .hospital-ioc-dot {
+  --ioc-dot: #1677ff;
+}
+
+.hospital-ioc-dot[data-tone='warning'],
+[data-tone='warning'] > .hospital-ioc-dot,
+[data-tone='warning'] .hospital-ioc-dot {
+  --ioc-dot: #fa8c16;
+}
+
+.hospital-ioc-dot[data-tone='critical'],
+[data-tone='critical'] > .hospital-ioc-dot,
+[data-tone='critical'] .hospital-ioc-dot {
+  --ioc-dot: #ff4d4f;
+}
+
+.hospital-message-console {
+  display: flex;
+  align-items: center;
+  width: 220px;
+  gap: 9px;
+  padding: 0 12px;
+  border-radius: 12px;
+}
+
+.hospital-ai-console {
+  display: flex;
+  align-items: center;
+  width: 172px;
+  gap: 9px;
+  padding: 0 12px;
+  border-radius: 12px;
+}
+
+.hospital-ai-console .anticon {
+  color: #1677ff;
+  font-size: 18px;
+}
+
+.hospital-ai-console span {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
+.hospital-ai-console b,
+.hospital-ai-console em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-ai-console b {
+  color: #1f2937;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hospital-ai-console em {
+  color: #64748b;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+}
+
+.hospital-message-console .anticon {
+  color: #1677ff;
+  font-size: 18px;
+}
+
+.hospital-message-console > span:last-child {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+  text-align: left;
+}
+
+.hospital-message-console > span:not(.anticon) {
+  flex: 1 1 auto;
+}
+
+.hospital-message-console b {
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-message-console em {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 10px;
+  font-style: normal;
+  line-height: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-message-console__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  flex: 0 0 auto;
+  padding: 0 7px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 1;
+  background: #ff4d4f;
+  box-shadow: 0 0 0 3px rgba(255, 77, 79, 0.1), 0 8px 18px rgba(255, 77, 79, 0.18);
+}
+
+.hospital-duty-console {
+  display: flex;
+  align-items: center;
+  width: 206px;
+  gap: 9px;
+  padding: 0 10px;
+  border-radius: 13px;
+}
+
+.hospital-duty-console__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(125, 211, 252, 0.28);
+  border-radius: 9px;
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.09);
+  box-shadow: inset 0 0 14px rgba(19, 194, 194, 0.09), 0 0 14px rgba(22, 119, 255, 0.14);
+}
+
+.hospital-duty-console__text {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+  text-align: left;
+}
+
+.hospital-duty-console__text em,
+.hospital-duty-console__text strong,
+.hospital-duty-console__text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-duty-console__text em {
+  color: rgba(22, 119, 255, 0.76);
+  font-size: 9px;
+  font-style: normal;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.hospital-duty-console__text strong {
+  color: #1f2937;
+  font-size: 12px;
+  line-height: 1.15;
+}
+
+.hospital-duty-console__text small {
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.1;
+}
+
+.hospital-ioc-popover .ant-popover-inner {
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(22, 119, 255, 0.2);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at 14% 8%, rgba(19, 194, 194, 0.1), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 248, 0.78));
+  box-shadow:
+    0 22px 56px rgba(15, 23, 42, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px) saturate(132%);
+}
+
+.hospital-ioc-popover .ant-popover-arrow::before {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.hospital-status-panel,
+.hospital-message-panel {
+  width: 408px;
+  padding: 14px;
+  color: #1f2937;
+}
+
+.hospital-popover-head {
+  display: grid;
+  gap: 4px;
+  padding-bottom: 12px;
+}
+
+.hospital-popover-head span {
+  color: rgba(22, 119, 255, 0.74);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hospital-popover-head strong {
+  color: #1f2937;
+  font-size: 14px;
+}
+
+.hospital-status-panel__list,
+.hospital-message-panel__list {
+  display: grid;
+  gap: 8px;
+}
+
+.hospital-status-panel__item {
+  --ioc-dot: #13c2c2;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  min-height: 48px;
+  gap: 10px;
+  padding: 9px 10px;
+  border: 1px solid rgba(22, 119, 255, 0.12);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.hospital-status-panel__item span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.hospital-status-panel__item b,
+.hospital-status-panel__item em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-status-panel__item b {
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.hospital-status-panel__item em {
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+}
+
+.hospital-status-panel__item strong {
+  color: color-mix(in srgb, var(--ioc-dot, #13c2c2), #ffffff 20%);
+  font-size: 12px;
+}
+
+.hospital-status-panel__item[data-tone='info'] {
+  --ioc-dot: #1677ff;
+}
+
+.hospital-status-panel__item[data-tone='warning'] {
+  --ioc-dot: #fa8c16;
+}
+
+.hospital-status-panel__item[data-tone='critical'] {
+  --ioc-dot: #ff4d4f;
+}
+
+.hospital-message-item {
+  --message-tone: #1677ff;
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-height: 64px;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  border-radius: 12px;
+  color: #1f2937;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.hospital-message-item[data-tone='normal'] {
+  --message-tone: #13c2c2;
+}
+
+.hospital-message-item[data-tone='info'] {
+  --message-tone: #1677ff;
+}
+
+.hospital-message-item[data-tone='warning'] {
+  --message-tone: #fa8c16;
+}
+
+.hospital-message-item[data-tone='critical'] {
+  --message-tone: #ff4d4f;
+}
+
+.hospital-message-item:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--message-tone), transparent 38%);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.1), 0 0 20px
+    color-mix(in srgb, var(--message-tone), transparent 86%);
+}
+
+.hospital-message-item > i {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  color: color-mix(in srgb, var(--message-tone), #ffffff 18%);
+  background: color-mix(in srgb, var(--message-tone), transparent 86%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--message-tone), transparent 78%);
+}
+
+.hospital-message-item span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.hospital-message-item small,
+.hospital-message-item b,
+.hospital-message-item em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-message-item small {
+  color: color-mix(in srgb, var(--message-tone), #ffffff 30%);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.hospital-message-item b {
+  color: #1f2937;
+  font-size: 13px;
+}
+
+.hospital-message-item em {
+  color: #64748b;
+  font-size: 11px;
+  font-style: normal;
+}
+
+.hospital-message-item > strong {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 999px;
+  color: #ffffff;
+  font-size: 11px;
+  background: color-mix(in srgb, var(--message-tone), transparent 18%);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--message-tone), transparent 62%);
+}
+
+.hospital-command-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  gap: 10px;
+  padding: 0 12px;
+  overflow: hidden;
+  border: 1px solid rgba(22, 119, 255, 0.18);
+  border-radius: 11px;
+  color: #1f2937;
+  background:
+    radial-gradient(circle at 12% 20%, rgba(19, 194, 194, 0.08), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.76), rgba(238, 243, 248, 0.62));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.74),
+    0 8px 24px rgba(22, 119, 255, 0.07);
+  cursor: pointer;
+  backdrop-filter: blur(16px) saturate(132%);
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.hospital-command-search::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(90deg, transparent, rgba(64, 169, 255, 0.12), transparent),
+    repeating-linear-gradient(90deg, rgba(22, 119, 255, 0.04) 0 1px, transparent 1px 18px);
+  opacity: 0.54;
+  transform: translateX(-36%);
+  animation: hospital-command-flow 4.8s linear infinite;
+}
+
+.hospital-command-search:hover {
+  transform: translateY(-1px);
+  border-color: rgba(64, 169, 255, 0.72);
+  background:
+    radial-gradient(circle at 12% 20%, rgba(19, 194, 194, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(238, 243, 248, 0.72));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.88),
+    0 0 0 3px rgba(22, 119, 255, 0.08),
+    0 12px 30px rgba(22, 119, 255, 0.2);
+}
+
+.hospital-command-search__kbd {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(22, 119, 255, 0.22);
+  border-radius: 7px;
+  color: #1677ff;
+  font-size: 15px;
+  font-weight: 700;
+  background: rgba(22, 119, 255, 0.08);
+  box-shadow: 0 0 14px rgba(19, 194, 194, 0.12);
+}
+
+.hospital-command-search__label {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 13px;
+  font-weight: 600;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-command-search__scope {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  flex: 0 0 auto;
+  color: rgba(22, 119, 255, 0.68);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-command-modal .ant-modal-content {
+  overflow: hidden;
+  padding: 0;
+  border: 1px solid rgba(22, 119, 255, 0.2);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 16% 10%, rgba(19, 194, 194, 0.1), transparent 30%),
+    radial-gradient(circle at 86% 0%, rgba(22, 119, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(238, 243, 248, 0.84));
+  box-shadow:
+    0 26px 72px rgba(15, 23, 42, 0.16),
+    0 0 0 1px rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px) saturate(132%);
+}
+
+.hospital-command-modal .ant-modal-close {
+  color: #64748b;
+}
+
+.hospital-command-modal .ant-modal-close:hover {
+  color: #1677ff;
+  background: rgba(22, 119, 255, 0.08);
+}
+
+.hospital-command-center {
+  position: relative;
+  padding: 22px;
+  color: #1f2937;
+}
+
+.hospital-command-center::before {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(rgba(22, 119, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 119, 255, 0.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: radial-gradient(circle at 50% 10%, #000 0, transparent 72%);
+}
+
+.hospital-command-center::after {
+  position: absolute;
+  top: 0;
+  left: -30%;
+  width: 44%;
+  height: 100%;
+  pointer-events: none;
+  content: '';
+  background: linear-gradient(90deg, transparent, rgba(64, 169, 255, 0.11), transparent);
+  transform: skewX(-12deg);
+  animation: hospital-command-scan 5.6s ease-in-out infinite;
+}
+
+.hospital-command-center > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hospital-command-center__head {
+  display: grid;
+  gap: 6px;
+  padding: 2px 42px 18px 2px;
+}
+
+.hospital-command-center__head span {
+  color: rgba(22, 119, 255, 0.74);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.hospital-command-center__head strong {
+  color: #1f2937;
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.hospital-command-center__head p {
+  max-width: 620px;
+  margin: 0;
+  color: #64748b;
+  font-size: 13px;
+}
+
+.hospital-command-center__input.ant-input-affix-wrapper {
+  height: 46px;
+  border-color: rgba(22, 119, 255, 0.2);
+  border-radius: 12px;
+  color: #1f2937;
+  background: rgba(255, 255, 255, 0.68);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.72),
+    0 0 24px rgba(22, 119, 255, 0.08);
+}
+
+.hospital-command-center__input.ant-input-affix-wrapper:hover,
+.hospital-command-center__input.ant-input-affix-wrapper-focused {
+  border-color: rgba(19, 194, 194, 0.72);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.86),
+    0 0 0 3px rgba(19, 194, 194, 0.08),
+    0 0 32px rgba(22, 119, 255, 0.16);
+}
+
+.hospital-command-center__input .ant-input {
+  color: #1f2937;
+  background: transparent;
+}
+
+.hospital-command-center__input .ant-input::placeholder {
+  color: #94a3b8;
+}
+
+.hospital-command-center__input .ant-input-prefix,
+.hospital-command-center__input .ant-input-clear-icon {
+  color: rgba(22, 119, 255, 0.7);
+}
+
+.hospital-command-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 14px 0;
+}
+
+.hospital-command-chip {
+  display: inline-flex;
+  align-items: center;
+  height: 30px;
+  gap: 7px;
+  padding: 0 10px;
+  border: 1px solid rgba(22, 119, 255, 0.12);
+  border-radius: 999px;
+  color: #334155;
+  font-size: 12px;
+  background: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+  transition:
+    border-color 180ms ease,
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.hospital-command-chip:hover {
+  color: #1677ff;
+  border-color: rgba(64, 169, 255, 0.62);
+  background: rgba(22, 119, 255, 0.08);
+  transform: translateY(-1px);
+}
+
+.hospital-command-results {
+  display: grid;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.hospital-command-results__title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #334155;
+  font-size: 12px;
+}
+
+.hospital-command-results__title span {
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.hospital-command-results__title em {
+  color: #64748b;
+  font-style: normal;
+}
+
+.hospital-command-result {
+  --command-tone: #1677ff;
+  position: relative;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  width: 100%;
+  min-height: 76px;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(22, 119, 255, 0.12);
+  border-radius: 13px;
+  color: #1f2937;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.62);
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.hospital-command-result[data-tone='cyan'] {
+  --command-tone: #13c2c2;
+}
+
+.hospital-command-result[data-tone='orange'] {
+  --command-tone: #fa8c16;
+}
+
+.hospital-command-result[data-tone='red'] {
+  --command-tone: #ff4d4f;
+}
+
+.hospital-command-result:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--command-tone), transparent 34%);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.1), 0 0 22px color-mix(in srgb, var(--command-tone), transparent 88%);
+}
+
+.hospital-command-result i {
+  width: 8px;
+  height: 38px;
+  border-radius: 999px;
+  background: var(--command-tone);
+  box-shadow: 0 0 18px color-mix(in srgb, var(--command-tone), transparent 42%);
+}
+
+.hospital-command-result span {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.hospital-command-result small {
+  color: color-mix(in srgb, var(--command-tone), #1f2937 18%);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.hospital-command-result strong {
+  overflow: hidden;
+  color: #1f2937;
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-command-result em {
+  overflow: hidden;
+  color: #64748b;
+  font-size: 12px;
+  font-style: normal;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hospital-command-result b {
+  color: #334155;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hospital-command-empty {
+  display: flex;
+  align-items: center;
+  min-height: 78px;
+  gap: 10px;
+  padding: 0 16px;
+  border: 1px dashed rgba(22, 119, 255, 0.22);
+  border-radius: 13px;
+  color: #64748b;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+@keyframes hospital-command-flow {
+  0% {
+    transform: translateX(-42%);
+  }
+
+  100% {
+    transform: translateX(42%);
+  }
+}
+
+@keyframes hospital-command-scan {
+  0%,
+  18% {
+    transform: translateX(0) skewX(-12deg);
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateX(330%) skewX(-12deg);
+    opacity: 0;
+  }
+}
+
+@keyframes hospital-ioc-pulse {
+  0%,
+  100% {
+    transform: scale(0.92);
+    opacity: 0.72;
+  }
+
+  50% {
+    transform: scale(1.16);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1440px) {
+  .hospital-command-slot {
+    max-width: 420px;
+  }
+
+  .hospital-status-console {
+    width: 216px;
+  }
+
+  .hospital-message-console {
+    width: 188px;
+  }
+
+  .hospital-ai-console {
+    width: 150px;
+  }
+
+  .hospital-duty-console {
+    width: 178px;
+  }
+}
+
+@media (max-width: 1280px) {
+  .hospital-command-slot {
+    max-width: none;
+  }
+
+  .hospital-command-search__scope {
+    display: none;
+  }
+
+  .hospital-status-console {
+    width: 132px;
+  }
+
+  .hospital-status-console__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hospital-status-mini em {
+    display: none;
+  }
+
+  .hospital-message-console,
+  .hospital-ai-console,
+  .hospital-duty-console {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hospital-message-console > span:last-child,
+  .hospital-ai-console span,
+  .hospital-duty-console__text,
+  .hospital-duty-console > .hospital-ioc-dot {
+    display: none;
+  }
+
+  .hospital-message-console__count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 900px) {
+  .hospital-command-slot {
+    position: static;
+    width: min(100%, 320px);
+    transform: none;
+  }
+
+  .hospital-ioc-control-zone {
+    gap: 6px;
+  }
+
+  .hospital-status-console {
+    width: 132px;
+  }
+
+  .hospital-status-console__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hospital-status-mini em {
+    display: none;
+  }
+
+  .hospital-message-console {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hospital-message-console > span:last-child {
+    display: none;
+  }
+
+  .hospital-message-console__count {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 10px;
+  }
+
+  .hospital-ai-console {
+    width: 42px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hospital-ai-console span {
+    display: none;
+  }
+
+  .hospital-duty-console {
+    width: 44px;
+    justify-content: center;
+    padding: 0;
+  }
+
+  .hospital-duty-console__text,
+  .hospital-duty-console > .hospital-ioc-dot {
+    display: none;
+  }
+
+  .hospital-command-search__scope {
+    display: none;
+  }
+
+  .hospital-command-modal {
+    max-width: calc(100vw - 24px);
+  }
+
+  .hospital-command-result {
+    grid-template-columns: 10px minmax(0, 1fr);
+  }
+
+  .hospital-command-result b {
+    display: none;
+  }
+}
+
+/* 主内容区内 ProTable：白底浅色（阻断 realDark 变量串联） */
+.hospital-main-scroll .ant-pro-table {
+  background: transparent;
+}
+
+.hospital-main-scroll .ant-pro-card {
+  background: #ffffff !important;
+  border-radius: 10px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+}
+
+.hospital-main-scroll .ant-pro-card .ant-card-body {
+  background: #ffffff !important;
+}
+
+.hospital-main-scroll .ant-pro-table-search {
+  border-radius: 10px !important;
+}
+
+.hospital-main-scroll .ant-pro-table-search-query-filter {
+  background: #ffffff !important;
+}
+
+.hospital-main-scroll .ant-pro-table-list-toolbar {
+  padding-inline: 0 !important;
+}
+
+.hospital-main-scroll .ant-table-wrapper .ant-table,
+.hospital-main-scroll .ant-table-wrapper .ant-table-container {
+  background: #ffffff !important;
+}
+
+.hospital-main-scroll .ant-table-thead > tr > th {
+  background: #fafafa !important;
+  color: #374151 !important;
+  font-weight: 600 !important;
+  border-color: #f0f0f0 !important;
+}
+
+.hospital-main-scroll .ant-table-tbody > tr > td {
+  background: #ffffff !important;
+  color: #1f2937 !important;
+  border-color: #f0f0f0 !important;
+}
+
+.hospital-main-scroll .ant-table-tbody > tr.ant-table-row:hover > td {
+  background: #f5f7fa !important;
+}
+
+.hospital-main-scroll .ant-pagination {
+  color: #1f2937;
+}
+
+.hospital-main-scroll .ant-pagination .ant-pagination-item-active {
+  border-color: #1677ff;
+}
+
+.hospital-main-scroll .ant-pagination .ant-pagination-item-active a {
+  color: #1677ff;
+}
+
+/* PageScaffold + ProCard 包裹列表时的表格工具条区域 */
+.hospital-main-scroll .ant-pro-query-filter,
+.hospital-main-scroll .ant-pro-query-filter-row-split {
+  background: #ffffff !important;
+}

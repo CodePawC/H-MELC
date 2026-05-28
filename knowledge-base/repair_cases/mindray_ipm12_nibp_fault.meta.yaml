@@ -1,0 +1,12 @@
+title: 迈瑞监护仪NIBP模块故障维修案例
+document_type: repair_case
+manufacturer: 迈瑞
+model: iPM12
+asset_category: patient_monitor
+visibility_scope: engineer
+security_level: internal
+tags:
+  - 监护仪
+  - NIBP
+  - 电磁阀
+  - 冷凝水

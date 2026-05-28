@@ -1,0 +1,69 @@
+# Environment and local secrets
+.env
+.env.local
+.env.*
+.env.*.local
+!.env.example
+!*.env.example
+
+# Python
+**pycache**/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.cache/
+.venv/
+venv/
+local.db
+*.sqlite
+*.sqlite3
+*.egg-info/
+build/
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.next/
+out/
+.vite/
+coverage/
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Logs and OS files
+*.log
+Thumbs.db
+.DS_Store
+
+# Local runtime storage
+storage/uploads/*
+storage/logs/*
+storage/backups/*
+storage/database/*
+!storage/uploads/.gitkeep
+!storage/logs/.gitkeep
+!storage/backups/.gitkeep
+!storage/database/.gitkeep
+
+# Local Windows shell cache
+Desktop.ini
+
+# Local editor / assistant state
+.vscode/
+.idea/
+.claude/
+.obsidian/
+.cursor/
+
+# Conversation exports and captured browser assets
+extracted_chat.txt
+full_conversation.txt
+html/
+tmp/
+temp/

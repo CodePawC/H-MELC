@@ -1,0 +1,104 @@
+body {
+    margin: 0 auto;
+}
+
+.container {
+    width: 1200px;
+    margin: 0 auto;
+
+}
+
+h1 {
+    text-align: center;
+}
+
+.content {
+    border: solid 1px #ced4da;
+    padding: 8px;
+}
+
+button {
+    margin-left: 8px;
+    margin-right: 0px;
+    display: inline;
+    padding: 8px;
+    background-color: #409eff;
+    border: 1px #409eff;
+    border-radius: 4px;
+    color: #fff;
+}
+
+
+button:hover {
+    background-color: #75baff;
+    border-color: #75baff;
+}
+
+button:active {
+    background-color: #1866b4;
+    border-color: #1866b4;
+}
+
+
+span {
+    color: red;
+    font-style: italic;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.status {
+    display: inline;
+}
+
+
+.service_status,
+.init_status,
+.connect_usb .usb_printer_connect_status,
+.connect_wifi .wifi_printer_connect_status,
+.select_usb .select_printer,
+.select_wifi .select_printer {
+    border: solid 1px #ced4da;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    font-size: 14px;
+    padding: 6px;
+}
+
+#ticket {
+    position: fixed;
+    left: -999px;
+}
+
+
+.service,
+.init,
+.select_usb,
+.select_wifi,
+.connect_usb,
+.connect_wifi,
+.print,
+.wifi_printer_setting {
+    margin-top: 16px;
+}
+
+
+.print_label {
+    margin-left: 0px;
+    margin-top: 4px;
+}
+
+img {
+    display: block;
+    margin: 20px auto;
+    border: 1px solid gray;
+}
+
+/* .preview_bg {
+  width: 560px;
+  height: 304px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+} */
