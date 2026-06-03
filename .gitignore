@@ -42,10 +42,14 @@ Thumbs.db
 .DS_Store
 
 # Local runtime storage
+storage/runtime/*
+backend/storage/runtime/*
 storage/uploads/*
 storage/logs/*
 storage/backups/*
 storage/database/*
+!storage/runtime/.gitkeep
+!backend/storage/runtime/.gitkeep
 !storage/uploads/.gitkeep
 !storage/logs/.gitkeep
 !storage/backups/.gitkeep
@@ -60,6 +64,9 @@ Desktop.ini
 .claude/
 .obsidian/
 .cursor/
+
+# Third-party hardware SDK (printer driver, download separately)
+backend/web-4.0.6_20260325/
 
 # Conversation exports and captured browser assets
 extracted_chat.txt

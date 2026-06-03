@@ -1,4 +1,0 @@
-var initSdkParam = {
-	"fontDir":"",
-	
-}
