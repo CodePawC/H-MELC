@@ -20,7 +20,7 @@ def _partner_record() -> dict:
         "org_name": "深圳迈瑞生物医疗电子股份有限公司",
         "short_name": "迈瑞",
         "unified_social_credit_code": "91440300708461136T",
-        "source": "h-mdm",
+        "source": "h-umdg",
         "version": "BP-20260528",
         "status": "enabled",
         "roles": [
@@ -43,7 +43,7 @@ def _partner_list_payload() -> dict:
 
 def _partner_match_payload() -> dict:
     item = _partner_record() | {"confidence": 96, "matchBasis": ["单位名称“深圳迈瑞”别名/简称匹配"], "hasRequiredRole": True, "degraded": False}
-    return {"data": {"connected": True, "source": "h-mdm", "degraded": False, "recommendation": item, "candidates": [item]}}
+    return {"data": {"connected": True, "source": "h-umdg", "degraded": False, "recommendation": item, "candidates": [item]}}
 
 
 def test_os_business_partner_selector_role_filter(
@@ -67,7 +67,7 @@ def test_os_business_partner_selector_role_filter(
     assert res.status_code == 200, res.text
     data = res.json()["data"]
     assert data["connected"] is True
-    assert data["source"] == "h-mdm"
+    assert data["source"] == "h-umdg"
     assert data["items"][0]["id"] == "org-mindray"
     assert data["items"][0]["roles"][0]["roleType"] == "manufacturer"
     assert data["items"][0]["hasOriginalFactoryAuthorization"] is True
@@ -112,7 +112,7 @@ def test_asset_can_reference_same_business_partner_for_multiple_roles(
     assert data["manufacturer_org_id"] == "org-mindray"
     assert data["supplier_org_id"] == "org-mindray"
     assert data["maintainer_org_id"] == "org-mindray"
-    assert data["org_source"] == "h-mdm"
+    assert data["org_source"] == "h-umdg"
     assert data["org_synced_at"]
 
 
@@ -145,7 +145,7 @@ def test_intake_matches_manufacturer_name_to_hmdm_business_partner(
             return {
                 "data": {
                     "records": [
-                        {"id": "cat-monitor", "code": "07-04-01", "name": "病人监护设备", "path": "医疗器械分类目录 / 医用电子仪器设备 / 病人监护设备", "source": "h-mdm", "version": "CAT-20260528", "status": "ACTIVE"}
+                        {"id": "cat-monitor", "code": "07-04-01", "name": "病人监护设备", "path": "医疗器械分类目录 / 医用电子仪器设备 / 病人监护设备", "source": "h-umdg", "version": "CAT-20260528", "status": "ACTIVE"}
                     ],
                     "total": 1,
                 }
@@ -153,6 +153,17 @@ def test_intake_matches_manufacturer_name_to_hmdm_business_partner(
         if path == "/api/v1/master-data/business-partners/match":
             assert json and json["keyword"]
             return _partner_match_payload()
+        if path == "/api/v1/master-data/standard-equipment-library":
+            return {
+                "data": {
+                    "records": [
+                        {"id": "standard-equipment-monitor", "code": "STD-EQ-MONITOR", "name": "病人监护仪", "generic_name": "病人监护仪", "category_name": "患者监护设备", "management_class": "II", "status": "ACTIVE"}
+                    ],
+                    "total": 1,
+                }
+            }
+        if path in ("/api/v1/master-data/equipment-brand-models", "/api/v1/master-data/registration-certificates", "/api/v1/master-data/udis"):
+            return {"data": {"records": [], "total": 0}}
         raise AssertionError(path)
 
     monkeypatch.setattr("app.modules.hmdm.client.request_json", fake_request)
@@ -162,7 +173,7 @@ def test_intake_matches_manufacturer_name_to_hmdm_business_partner(
     assert matched.status_code == 200, matched.text
     result = matched.json()["data"]["mdm_match_result"]
     assert result["manufacturerRecommendation"]["id"] == "org-mindray"
-    assert result["manufacturerRecommendation"]["source"] == "h-mdm"
+    assert result["manufacturerRecommendation"]["source"] == "h-umdg"
     assert result["manufacturerRecommendation"]["confidence"] == 96
 
 
@@ -183,7 +194,7 @@ def test_hmdm_business_partner_api_key_error_does_not_clear_os_auth(
     monkeypatch.setattr("app.modules.hmdm.client.request_json", fake_request)
     res = client.get("/api/v1/mdm/business-partners/search", headers=h, params={"keyword": "迈瑞"})
     assert res.status_code == 502, res.text
-    assert "H-UMDG 接口鉴权失败" in res.json()["detail"]
+    assert "主数据服务接口鉴权失败" in res.json()["detail"]
 
     me = client.get("/api/v1/auth/me", headers=h)
     assert me.status_code == 200, me.text
