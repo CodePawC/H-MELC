@@ -1,10 +1,11 @@
-"""JWT 依赖与角色校验。"""
+"""JWT 依赖与角色校验。支持 standalone + unified 双模式。"""
 
 from __future__ import annotations
 
 from fastapi import Depends, Header, HTTPException, status
 
-from app.modules.auth.jwt_tools import decode_token
+from app.core.config import get_settings
+from app.modules.auth.jwt_tools import decode_token, extract_roles_from_payload
 from app.modules.auth.schemas import JwtClaims
 
 
@@ -27,6 +28,9 @@ def _parse_bearer(authorization: str | None, *, optional: bool) -> JwtClaims | N
         raise _auth_error("AUTH_TOKEN_MISSING", "未提供访问令牌")
     try:
         payload = decode_token(raw)
+        # 统一提取角色（standalone roles 或 unified systems.H-MELC.roles）
+        roles = extract_roles_from_payload(payload)
+        payload["roles"] = roles
         return JwtClaims.from_payload(payload)
     except Exception:
         if optional:

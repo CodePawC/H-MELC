@@ -39,8 +39,13 @@ class JwtClaims(BaseModel):
     def from_payload(cls, payload: dict[str, object]) -> JwtClaims:
         raw_roles = payload.get("roles") or []
         roles = raw_roles if isinstance(raw_roles, list) else []
+        sub_raw = payload.get("sub", "")
+        try:
+            sub = UUID(str(sub_raw))
+        except (ValueError, TypeError):
+            sub = UUID(int=0)  # 非 UUID 的 sub（如统一身份登录），使用 nil UUID
         return cls(
-            sub=UUID(str(payload["sub"])),
-            username=str(payload["username"]),
+            sub=sub,
+            username=str(payload.get("username", payload.get("sub", ""))),
             roles=frozenset(str(r) for r in roles),
         )
