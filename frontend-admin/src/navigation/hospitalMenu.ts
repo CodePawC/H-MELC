@@ -1,5 +1,5 @@
 /**
- * 医院医学装备运营 OS 菜单（IOC + AI + 任务闭环 + 全生命周期运营，与 RBAC、供应商门户联动）
+ * H-MELC 管理端菜单（IOC + AI + 任务闭环 + 全生命周期运营，与 RBAC、供应商门户联动）
  */
 
 import { hasAnyPermission } from '../auth/permission'
@@ -38,10 +38,22 @@ export type AdminPageKind =
   | 'workflowConsole'
   | 'mdmDictionary'
   | 'masterDataSourceConfig'
-  | 'hmdmIntegration'
+  | 'masterDataObjects'
+  | 'masterDataFieldMapping'
+  | 'masterDataSyncTasks'
+  | 'masterDataQualityCheck'
+  | 'masterDataConflicts'
+  | 'supplementRequests'
   | 'knowledgeDocuments'
   | 'aiGateway'
   | 'apiDirectory'
+  | 'integrationCenter'
+  | 'standardDataAccess'
+  | 'businessInterfaces'
+  | 'iotDevices'
+  | 'apiAuth'
+  | 'interfaceLogs'
+  | 'messageQueue'
   | 'pmPlans'
   | 'pmTasks'
   | 'pmCalendar'
@@ -61,6 +73,7 @@ export type AdminPageKind =
   | 'systemUsers'
   | 'systemRoles'
   | 'systemMenus'
+  | 'aboutSystem'
   | 'portalHome'
   | 'portalInvoices'
   | 'portalPayments'
@@ -71,7 +84,9 @@ export type MenuAccess = 'internal' | 'supplier' | 'both'
 export interface AdminMenuLeaf {
   path: string
   label: string
+  icon?: string
   page?: AdminPageKind
+  children?: AdminMenuLeaf[]
   /** 医院统一 Mock/业务页 */
   hospitalPreset?: string
   requiredPermissions?: string[]
@@ -82,6 +97,7 @@ export interface AdminMenuLeaf {
 export interface AdminMenuGroup {
   id: string
   label: string
+  icon?: string
   items: AdminMenuLeaf[]
   access?: MenuAccess
   /** 具备其一角色可见该分组；未配置则仅按叶子权限过滤 */
@@ -139,7 +155,23 @@ function presetLeaf(
   }
 }
 
-export const ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
+function flattenMenuLeaves(items: AdminMenuLeaf[]): AdminMenuLeaf[] {
+  return items.flatMap((item) => (item.children?.length ? flattenMenuLeaves(item.children) : [item]))
+}
+
+export function firstMenuLeafPath(items: AdminMenuLeaf[]): string | undefined {
+  for (const item of items) {
+    if (item.children?.length) {
+      const childPath = firstMenuLeafPath(item.children)
+      if (childPath) return childPath
+      continue
+    }
+    return item.path
+  }
+  return undefined
+}
+
+const LEGACY_ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
   {
     id: 'dashboard',
     label: '运营中心',
@@ -372,44 +404,206 @@ export const ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
     label: '系统管理',
     allowedRoles: R_INT,
     items: [
-      { path: '/system/users', label: '用户管理', page: 'systemUsers', requiredPermissions: ['system:user:view'] },
-      { path: '/system/roles', label: '角色权限', page: 'systemRoles', requiredPermissions: ['system:role:view'] },
-      { path: '/system/menus', label: '菜单管理', page: 'systemMenus', requiredPermissions: ['system:menu:assign'] },
-      { path: '/system/dictionary', label: '数据字典', page: 'mdmDictionary', requiredPermissions: ['mdm:dict:view'] },
       {
-        path: '/system/master-data-sources',
-        label: '主数据来源配置',
-        page: 'masterDataSourceConfig',
-        requiredPermissions: ['mdm:dict:view', 'system:param:view'],
+        path: '/system/security',
+        label: '用户与权限',
+        children: [
+          { path: '/system/users', label: '用户管理', page: 'systemUsers', requiredPermissions: ['system:user:view'] },
+          { path: '/system/roles', label: '角色权限', page: 'systemRoles', requiredPermissions: ['system:role:view'] },
+          { path: '/system/menus', label: '菜单管理', page: 'systemMenus', requiredPermissions: ['system:menu:assign'] },
+          presetLeaf('/system/sso', '单点登录SSO', ['system:param:view']),
+        ],
       },
       {
-        path: '/system/hmdm-integration',
-        label: 'H-UMDG外部接入',
-        page: 'hmdmIntegration',
-        requiredPermissions: ['mdm:dict:view', 'system:param:view'],
+        path: '/system/basic',
+        label: '基础设置',
+        children: [
+          { path: '/system/dictionary', label: '数据字典', page: 'mdmDictionary', requiredPermissions: ['mdm:dict:view'] },
+          presetLeaf('/system/coding-rules', '编码规则', ['system:param:view']),
+          presetLeaf('/system/parameters', '参数配置', ['system:param:view'], { hospitalPreset: 'sys_params' }),
+          { path: '/system/workflows', label: '审批流配置', page: 'workflowConsole', requiredPermissions: ['workflow:config:view'] },
+        ],
       },
-      presetLeaf('/system/parameters', '参数配置', ['system:param:view'], { hospitalPreset: 'sys_params' }),
-      { path: '/system/workflows', label: '审批流配置', page: 'workflowConsole', requiredPermissions: ['workflow:config:view'] },
-      presetLeaf('/system/task-engine', '任务规则引擎', ['workflow:config:view', 'system:param:view']),
-      presetLeaf('/system/alert-engine', '告警规则引擎', ['system:param:view']),
-      presetLeaf('/system/sla', 'SLA规则配置', ['workflow:config:view', 'system:param:view']),
-      presetLeaf('/system/messages', '消息中心配置', ['system:param:view']),
-      presetLeaf('/system/wechat', '微信通知配置', ['system:param:view']),
-      { path: '/system/api-config', label: '接口集成', page: 'apiDirectory', requiredPermissions: ['system:param:view'] },
-      presetLeaf('/system/iot', 'IoT设备接入', ['system:param:view']),
-      presetLeaf('/system/sso', '单点登录SSO', ['system:param:view']),
-      presetLeaf('/system/backup', '数据备份', ['system:param:view']),
-      presetLeaf('/system/recovery', '数据恢复', ['system:param:view']),
-      presetLeaf('/system/op-logs', '操作日志', ['system:audit:view'], { hospitalPreset: 'sys_oplog' }),
-      { path: '/system/audit-logs', label: '审计日志', page: 'auditLogs', requiredPermissions: ['system:audit:view'] },
-      presetLeaf('/system/monitor', '系统监控', ['system:audit:view', 'system:param:view']),
+      {
+        path: '/system/master-data',
+        label: '主数据服务',
+        children: [
+          { path: '/system/master-data/service-config', label: '主数据来源设置', page: 'masterDataSourceConfig', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/objects', label: '数据对象管理', page: 'masterDataObjects', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/field-mapping', label: '字段映射规则', page: 'masterDataFieldMapping', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/sync-tasks', label: '同步任务管理', page: 'masterDataSyncTasks', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/quality-check', label: '数据质量校验', page: 'masterDataQualityCheck', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/conflicts', label: '数据冲突处理', page: 'masterDataConflicts', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+          { path: '/system/master-data/supplement-requests', label: '补充申请管理', page: 'supplementRequests', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+        ],
+      },
+      {
+        path: '/system/integration',
+        label: '接入集成',
+        children: [
+          { path: '/system/integration/standard-data', label: '标准数据接入', page: 'standardDataAccess', requiredPermissions: ['system:param:view'] },
+          { path: '/system/integration/business-interfaces', label: '业务系统接口', page: 'businessInterfaces', requiredPermissions: ['system:param:view'] },
+          { path: '/system/integration/iot-devices', label: 'IoT设备接入', page: 'iotDevices', requiredPermissions: ['system:param:view'] },
+          { path: '/system/integration/api-auth', label: 'API授权管理', page: 'apiAuth', requiredPermissions: ['system:param:view'] },
+          { path: '/system/integration/interface-logs', label: '接口调用日志', page: 'interfaceLogs', requiredPermissions: ['system:param:view'] },
+          { path: '/system/integration/message-queue', label: '消息队列配置', page: 'messageQueue', requiredPermissions: ['system:param:view'] },
+        ],
+      },
+      {
+        path: '/system/rules',
+        label: '规则引擎',
+        children: [
+          presetLeaf('/system/rules/task-engine', '任务规则引擎', ['workflow:config:view', 'system:param:view']),
+          presetLeaf('/system/rules/alert-engine', '告警规则引擎', ['system:param:view']),
+          presetLeaf('/system/rules/sla', 'SLA规则配置', ['workflow:config:view', 'system:param:view']),
+          presetLeaf('/system/rules/auto-dispatch', '自动派单规则', ['workflow:config:view', 'system:param:view']),
+        ],
+      },
+      {
+        path: '/system/notifications',
+        label: '消息通知',
+        children: [
+          presetLeaf('/system/notifications/messages', '消息中心配置', ['system:param:view']),
+          presetLeaf('/system/notifications/wechat', '微信通知配置', ['system:param:view']),
+          presetLeaf('/system/notifications/sms', '短信通知配置', ['system:param:view']),
+          presetLeaf('/system/notifications/email', '邮件通知配置', ['system:param:view']),
+          presetLeaf('/system/notifications/robot', '机器人通知配置', ['system:param:view']),
+        ],
+      },
+      {
+        path: '/system/data-ops',
+        label: '数据运维',
+        children: [
+          presetLeaf('/system/data-ops/backup', '数据备份', ['system:param:view']),
+          presetLeaf('/system/data-ops/recovery', '数据恢复', ['system:param:view']),
+          presetLeaf('/system/data-ops/op-logs', '操作日志', ['system:audit:view'], { hospitalPreset: 'sys_oplog' }),
+          { path: '/system/data-ops/audit-logs', label: '审计日志', page: 'auditLogs', requiredPermissions: ['system:audit:view'] },
+          presetLeaf('/system/data-ops/monitor', '系统监控', ['system:audit:view', 'system:param:view']),
+        ],
+      },
+      { path: '/system/about', label: '关于系统', page: 'aboutSystem', requiredPermissions: ['dashboard:home:view'] },
     ],
   },
 ]
 
-export const ADMIN_MENU_LEAVES = ADMIN_MENU_GROUPS.flatMap((g) => g.items)
+export const ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
+  {
+    id: 'operation',
+    label: '运营中心',
+    icon: '1️⃣',
+    allowedRoles: R_INT,
+    items: [
+      { path: '/dashboard', label: '运营总览', icon: '📊', page: 'home', requiredPermissions: p.dash },
+      presetLeaf('/dashboard/kpi', 'KPI仪表盘', p.dash, { icon: '📈' }),
+      presetLeaf('/analytics/bi', 'BI分析报告', p.dash, { icon: '📉' }),
+      presetLeaf('/dashboard/insight', 'AI运营洞察', p.ai, { icon: '🤖' }),
+      { path: '/dashboard/risk', label: '风险态势', icon: '⚠️', page: 'workspaceRisks', requiredPermissions: p.dash },
+    ],
+  },
+  {
+    id: 'equipment',
+    label: '设备中心',
+    icon: '2️⃣',
+    allowedRoles: [...RA, ...RD, ...RE, ...RN, ...RP, ...RQ],
+    items: [
+      { path: '/assets/overview', label: '设备总览', icon: '📋', page: 'assetsOverview', requiredPermissions: p.asset },
+      { path: '/assets/archive', label: '设备档案', icon: '📁', page: 'assets', requiredPermissions: p.asset },
+      { path: '/assets/new', label: '智能建档', icon: '🤖', page: 'assetCreate', requiredPermissions: p.asset, requiredRoles: R_ASSET_CFG },
+      { path: '/assets/qrcodes', label: '设备二维码', icon: '🏷️', page: 'assetCodes', requiredPermissions: p.asset, requiredRoles: R_ASSET_CFG },
+      { path: '/pm/plans', label: '保养计划', icon: '🧰', page: 'pmPlans', requiredPermissions: p.pm },
+      { path: '/pm/tasks', label: '保养任务', icon: '✅', page: 'pmTasks', requiredPermissions: p.pm },
+      { path: '/pm/calendar', label: '维护日历', icon: '📅', page: 'pmCalendar', requiredPermissions: p.pm },
+      { path: '/pm/inspection', label: '巡检记录', icon: '📝', page: 'pmInspection', requiredPermissions: p.pm },
+      { path: '/meter/ledger', label: '计量台账', icon: '⚖️', page: 'metrologyWorkbench', requiredPermissions: p.meter },
+    ],
+  },
+  {
+    id: 'tasks',
+    label: '任务中心',
+    icon: '3️⃣',
+    allowedRoles: R_INT,
+    items: [
+      presetLeaf('/task-center/all', '全部任务', p.task, { icon: '📋' }),
+      { path: '/task-center/my', label: '我的待办', icon: '⏰', page: 'workspaceTodos', requiredPermissions: p.task },
+      { path: '/repair/new', label: '新建报修', icon: '🛠️', page: 'repairNew', requiredPermissions: p.repair },
+      { path: '/repair/ai-assistant', label: 'AI报修助手', icon: '🤖', page: 'repairAssistant', requiredPermissions: p.repair },
+      { path: '/repair/center', label: '报修中心', icon: '🧾', page: 'repairCenter', requiredPermissions: p.repair },
+      { path: '/repair/dispatch', label: '待派工工单', icon: '👷', page: 'repairDispatch', requiredPermissions: ['equipment:repair:assign'], requiredRoles: R_REPAIR_OPS },
+      { path: '/repair/process', label: '维修处理中', icon: '🔧', page: 'repairProcess', requiredPermissions: p.repair, requiredRoles: R_REPAIR_OPS },
+      { path: '/repair/accept', label: '待验收工单', icon: '🧪', page: 'repairAccept', requiredPermissions: p.repair, requiredRoles: R_REPAIR_ACCEPT },
+      { path: '/repair/tickets', label: '维修记录', icon: '📄', page: 'repairs', requiredPermissions: p.repair },
+      presetLeaf('/task-center/calendar', '任务日历', p.task, { icon: '📅' }),
+      presetLeaf('/task-center/statistics', '任务统计', p.task, { icon: '📊' }),
+    ],
+  },
+  {
+    id: 'supply-finance',
+    label: '供应链与财务',
+    icon: '4️⃣',
+    allowedRoles: [...R_INT, 'SUPPLIER_PORTAL'],
+    items: [
+      { path: '/purchase/apply', label: '采购管理', icon: '🛒', page: 'procurementWorkbench', requiredPermissions: p.pur },
+      { path: '/supplier/profiles', label: '供应商管理', icon: '🤝', page: 'supplierProfiles', requiredPermissions: ['supplier:profile:view'] },
+      { path: '/finance/payables', label: '财务管理', icon: '💰', page: 'financePayables', requiredPermissions: p.fin },
+    ],
+  },
+  {
+    id: 'system',
+    label: '系统管理',
+    icon: '5️⃣',
+    allowedRoles: R_INT,
+    items: [
+      { path: '/system/users', label: '用户与权限', icon: '👥', page: 'systemUsers', requiredPermissions: ['system:user:view'] },
+      { path: '/system/dictionary', label: '基础数据配置', icon: '⚙️', page: 'mdmDictionary', requiredPermissions: ['mdm:dict:view'] },
+      { path: '/system/master-data/service-config', label: '主数据来源设置', icon: '🧭', page: 'masterDataSourceConfig', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+      { path: '/system/master-data/objects', label: '数据对象管理', icon: '🗂️', page: 'masterDataObjects', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+      { path: '/system/master-data/field-mapping', label: '字段映射规则', icon: '🧬', page: 'masterDataFieldMapping', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+      { path: '/system/master-data/sync-tasks', label: '同步任务管理', icon: '🔁', page: 'masterDataSyncTasks', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+      { path: '/system/master-data/quality-check', label: '数据质量校验', icon: '✅', page: 'masterDataQualityCheck', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+      { path: '/system/integration/standard-data', label: '接入集成', icon: '🔗', page: 'standardDataAccess', requiredPermissions: ['system:param:view'] },
+      presetLeaf('/system/rules/task-engine', '规则引擎', ['workflow:config:view', 'system:param:view'], { icon: '📜' }),
+      presetLeaf('/system/notifications/messages', '消息通知', ['system:param:view'], { icon: '🛎️' }),
+      presetLeaf('/system/data-ops/backup', '数据运维', ['system:param:view'], { icon: '🗄️' }),
+      { path: '/knowledge/policies', label: '知识中心', icon: '📚', page: 'knowledgeDocuments', requiredPermissions: ['knowledge:doc:view'] },
+    ],
+  },
+]
+
+export const ADMIN_MENU_LEAVES = ADMIN_MENU_GROUPS.flatMap((g) => flattenMenuLeaves(g.items))
+const LEGACY_MENU_LEAVES = LEGACY_ADMIN_MENU_GROUPS.flatMap((g) => flattenMenuLeaves(g.items))
+
+function uniqueRouteLeaves(...groups: AdminMenuLeaf[][]): AdminMenuLeaf[] {
+  const seen = new Set<string>()
+  const routes: AdminMenuLeaf[] = []
+  for (const leaves of groups) {
+    for (const leaf of leaves) {
+      if (seen.has(leaf.path)) continue
+      seen.add(leaf.path)
+      routes.push(leaf)
+    }
+  }
+  return routes
+}
 
 export const HIDDEN_ROUTE_LEAVES: AdminMenuLeaf[] = [
+  { path: '/system/master-data-sources', label: '主数据来源设置', page: 'masterDataSourceConfig', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+  { path: '/system/hmdm-integration', label: '主数据来源设置', page: 'masterDataSourceConfig', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
+  { path: '/system/api-config', label: '接入集成', page: 'businessInterfaces', requiredPermissions: ['system:param:view'] },
+  { path: '/system/interface-integration', label: '业务系统接口', page: 'businessInterfaces', requiredPermissions: ['system:param:view'] },
+  { path: '/system/iot', label: 'IoT设备接入', page: 'iotDevices', requiredPermissions: ['system:param:view'] },
+  { path: '/system/iot-devices', label: 'IoT设备接入', page: 'iotDevices', requiredPermissions: ['system:param:view'] },
+  { path: '/system/sso', label: '单点登录SSO', hospitalPreset: 'system_sso', requiredPermissions: ['system:param:view'] },
+  { path: '/system/workflows', label: '审批流配置', page: 'workflowConsole', requiredPermissions: ['workflow:config:view'] },
+  presetLeaf('/system/task-engine', '任务规则引擎', ['workflow:config:view', 'system:param:view']),
+  presetLeaf('/system/alert-engine', '告警规则引擎', ['system:param:view']),
+  presetLeaf('/system/sla', 'SLA规则配置', ['workflow:config:view', 'system:param:view']),
+  presetLeaf('/system/messages', '消息中心配置', ['system:param:view']),
+  presetLeaf('/system/wechat', '微信通知配置', ['system:param:view']),
+  presetLeaf('/system/backup', '数据备份', ['system:param:view']),
+  presetLeaf('/system/recovery', '数据恢复', ['system:param:view']),
+  presetLeaf('/system/op-logs', '操作日志', ['system:audit:view'], { hospitalPreset: 'sys_oplog' }),
+  { path: '/system/audit-logs', label: '审计日志', page: 'auditLogs', requiredPermissions: ['system:audit:view'] },
+  presetLeaf('/system/monitor', '系统监控', ['system:audit:view', 'system:param:view']),
   presetLeaf('/dashboard/realtime', '实时运营态势', p.dash),
   presetLeaf('/dashboard/events', '实时事件中心', p.dash),
   presetLeaf('/dashboard/messages', '消息中心', p.dash),
@@ -442,7 +636,7 @@ export const HIDDEN_ROUTE_LEAVES: AdminMenuLeaf[] = [
   { path: '/ai/agents', label: 'AI智能体中心', page: 'aiGateway', requiredPermissions: p.ai },
 ]
 
-export const ADMIN_ROUTE_LEAVES = [...ADMIN_MENU_LEAVES, ...HIDDEN_ROUTE_LEAVES]
+export const ADMIN_ROUTE_LEAVES = uniqueRouteLeaves(ADMIN_MENU_LEAVES, LEGACY_MENU_LEAVES, HIDDEN_ROUTE_LEAVES)
 
 function groupAllowed(g: AdminMenuGroup, me: AuthUserProfile): boolean {
   if (me.permissions?.includes('*')) return true
@@ -475,23 +669,56 @@ export function filterMenuForProfile(groups: AdminMenuGroup[], me: AuthUserProfi
     return true
   }
 
+  const filterLeaves = (items: AdminMenuLeaf[], group: AdminMenuGroup): AdminMenuLeaf[] => (
+    items
+      .map((item) => {
+        if (item.children?.length) {
+          const children = filterLeaves(item.children, group)
+          return children.length ? { ...item, children } : null
+        }
+        return leafOk(item, group) ? item : null
+      })
+      .filter((item): item is AdminMenuLeaf => Boolean(item))
+  )
+
   return groups
     .filter((g) => groupAllowed(g, me))
     .map((g) => ({
       ...g,
-      items: g.items.filter((item) => leafOk(item, g)),
+      items: filterLeaves(g.items, g),
     }))
     .filter((g) => g.items.length > 0)
 }
 
+function menuLeafContainsPath(leaf: AdminMenuLeaf, pathname: string): boolean {
+  if (leaf.children?.length) {
+    return leaf.children.some((item) => menuLeafContainsPath(item, pathname))
+  }
+  return pathname === leaf.path || pathname.startsWith(`${leaf.path}/`)
+}
+
+export function findMenuLeafByPath(items: AdminMenuLeaf[], pathname: string): AdminMenuLeaf | undefined {
+  for (const item of items) {
+    if (item.children?.length) {
+      const matched = findMenuLeafByPath(item.children, pathname)
+      if (matched) return matched
+      continue
+    }
+    if (pathname === item.path || pathname.startsWith(`${item.path}/`)) {
+      return item
+    }
+  }
+  return undefined
+}
+
 export function menuGroupContainsPath(group: AdminMenuGroup, pathname: string): boolean {
-  if (group.id === 'knowledge' && pathname.startsWith('/knowledge/documents')) {
+  if (group.id === 'system' && pathname.startsWith('/knowledge/documents')) {
     return true
   }
-  if (group.id === 'assets' && /^\/(lifecycle\/assets|assets\/archive)\//.test(pathname)) {
+  if (group.id === 'equipment' && /^\/(lifecycle\/assets|assets\/archive)\//.test(pathname)) {
     return true
   }
-  if (group.id === 'maintenance' && /^\/(maintenance\/tickets|repair\/tickets)\//.test(pathname)) {
+  if (group.id === 'tasks' && /^\/(maintenance\/tickets|repair\/tickets)\//.test(pathname)) {
     return true
   }
   if (group.id === 'supply-finance' && pathname.startsWith('/supplier/')) {
@@ -503,8 +730,8 @@ export function menuGroupContainsPath(group: AdminMenuGroup, pathname: string): 
   if (pathname.startsWith('/portal') && group.id === 'supply-finance') {
     return true
   }
-  if (pathname.startsWith('/analytics') && group.id === 'dashboard') {
+  if (pathname.startsWith('/analytics') && group.id === 'operation') {
     return true
   }
-  return group.items.some((item) => pathname === item.path || pathname.startsWith(`${item.path}/`))
+  return group.items.some((item) => menuLeafContainsPath(item, pathname))
 }

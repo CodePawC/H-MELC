@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes, useParams } from 'react-router-dom'
 
 import type { AdminPageKind, AdminMenuLeaf } from './navigation/menu'
-import { ADMIN_MENU_GROUPS, ADMIN_ROUTE_LEAVES } from './navigation/menu'
+import { ADMIN_MENU_GROUPS, ADMIN_ROUTE_LEAVES, firstMenuLeafPath } from './navigation/menu'
 import { RequireAuth } from './auth/RequireAuth'
 import { PermissionOutlet } from './layout/PermissionOutlet'
 import { ProAdminLayout } from './layout/ProAdminLayout'
@@ -20,14 +20,15 @@ import { FinancePayablesPage } from './pages/FinancePayablesPage'
 import { FinancePaymentsPage } from './pages/FinancePaymentsPage'
 import { FinancePriorityPage } from './pages/FinancePriorityPage'
 import { HomePage } from './pages/HomePage'
-import { HmdmIntegrationPage } from './pages/HmdmIntegrationPage'
 import { HospitalPresetPage } from './pages/hospital/HospitalPresetPage'
+import { IntegrationCenterPage } from './pages/IntegrationCenterPage'
 import { KnowledgeDocumentDetailPage } from './pages/KnowledgeDocumentDetailPage'
 import { KnowledgeDocumentsPage } from './pages/KnowledgeDocumentsPage'
 import { LoginPage } from './pages/LoginPage'
 import { MetrologyWorkbenchPage } from './pages/MetrologyWorkbenchPage'
 import { MdmDictionaryPage } from './pages/MdmDictionaryPage'
 import { MasterDataSourceConfigPage } from './pages/MasterDataSourceConfigPage'
+import { MasterDataServicePage } from './pages/MasterDataServicePages'
 import { PmAlertsPage } from './pages/pm/PmAlertsPage'
 import { PmCalendarPage } from './pages/pm/PmCalendarPage'
 import { PmInspectionPage } from './pages/pm/PmInspectionPage'
@@ -44,6 +45,7 @@ import { RepairDispatchPage } from './pages/RepairDispatchPage'
 import { RepairTicketDetailPage } from './pages/RepairTicketDetailPage'
 import { RepairTicketsPage } from './pages/RepairTicketsPage'
 import { RepairWorkbenchPage } from './pages/RepairWorkbenchPage'
+import { AboutSystemPage } from './pages/AboutSystemPage'
 import { UnifiedRepairCenterPage } from './pages/UnifiedRepairCenterPage'
 import { SupplierProfilesPage } from './pages/SupplierProfilesPage'
 import { SupplierProjectsPage } from './pages/SupplierProjectsPage'
@@ -53,6 +55,7 @@ import { PermissionMenuPage } from './pages/System/Permission/PermissionMenuPage
 import { RoleManagementPage } from './pages/System/Role/RoleManagementPage'
 import { UserManagementPage } from './pages/System/User/UserManagementPage'
 import { WorkflowConsolePage } from './pages/WorkflowConsolePage'
+import { SupplementRequestPage } from './pages/SupplementRequestPage'
 import { WorkspaceRisksPage } from './pages/workspace/WorkspaceRisksPage'
 import { WorkspaceTodosPage } from './pages/workspace/WorkspaceTodosPage'
 
@@ -125,14 +128,38 @@ function AdminRoutePage({ leaf }: { leaf: AdminMenuLeaf }) {
       return <MdmDictionaryPage />
     case 'masterDataSourceConfig':
       return <MasterDataSourceConfigPage />
-    case 'hmdmIntegration':
-      return <HmdmIntegrationPage />
+    case 'masterDataObjects':
+      return <MasterDataServicePage view="objects" />
+    case 'masterDataFieldMapping':
+      return <MasterDataServicePage view="mapping" />
+    case 'masterDataSyncTasks':
+      return <MasterDataServicePage view="sync" />
+    case 'masterDataQualityCheck':
+      return <MasterDataServicePage view="quality" />
+    case 'masterDataConflicts':
+      return <MasterDataServicePage view="conflicts" />
+    case 'supplementRequests':
+      return <SupplementRequestPage />
     case 'knowledgeDocuments':
       return <KnowledgeDocumentsPage />
     case 'aiGateway':
       return <AiGatewayPage />
     case 'apiDirectory':
       return <ApiDirectoryPage />
+    case 'integrationCenter':
+      return <IntegrationCenterPage />
+    case 'standardDataAccess':
+      return <IntegrationCenterPage initialTab="standard-data" />
+    case 'businessInterfaces':
+      return <IntegrationCenterPage initialTab="business-interfaces" />
+    case 'iotDevices':
+      return <IntegrationCenterPage initialTab="iot-devices" />
+    case 'apiAuth':
+      return <IntegrationCenterPage initialTab="api-auth" />
+    case 'interfaceLogs':
+      return <IntegrationCenterPage initialTab="interface-logs" />
+    case 'messageQueue':
+      return <IntegrationCenterPage initialTab="message-queue" />
     case 'pmPlans':
       return <PmPlansPage />
     case 'pmTasks':
@@ -173,6 +200,8 @@ function AdminRoutePage({ leaf }: { leaf: AdminMenuLeaf }) {
       return <RoleManagementPage />
     case 'systemMenus':
       return <PermissionMenuPage />
+    case 'aboutSystem':
+      return <AboutSystemPage />
     case 'portalHome':
       return <PortalHomePage />
     case 'portalInvoices':
@@ -208,6 +237,7 @@ export default function App() {
             <Route path="/knowledge/documents/:documentId" element={<KnowledgeDocumentDetailPage />} />
 
             <Route path="/assets" element={<Navigate to="/assets/overview" replace />} />
+            <Route path="/assets/create" element={<Navigate to="/assets/new" replace />} />
             <Route path="/lifecycle/assets" element={<Navigate to="/assets/archive" replace />} />
             <Route path="/lifecycle/assets/new" element={<Navigate to="/assets/new" replace />} />
           <Route path="/lifecycle/asset-codes" element={<Navigate to="/assets/qrcodes" replace />} />
@@ -221,14 +251,14 @@ export default function App() {
             <Route path="/workspace/events" element={<Navigate to="/dashboard/events" replace />} />
             <Route path="/workspace/messages" element={<Navigate to="/dashboard/messages" replace />} />
             <Route path="/workspace/reports" element={<Navigate to="/dashboard/reports" replace />} />
-            <Route path="/workspace/ai" element={<Navigate to="/ai/ops" replace />} />
+            <Route path="/workspace/ai" element={<Navigate to="/dashboard/insight" replace />} />
             <Route path="/workspace/ai/risk" element={<Navigate to="/ai/risk" replace />} />
             <Route path="/workspace/ai/repair" element={<Navigate to="/ai/repair" replace />} />
             <Route path="/workspace/ai/qa" element={<Navigate to="/ai/qa" replace />} />
             <Route path="/workspace/ai/analysis" element={<Navigate to="/ai/analysis" replace />} />
             <Route path="/workspace/ai/report" element={<Navigate to="/ai/report" replace />} />
             <Route path="/analytics" element={<Navigate to="/analytics/bi" replace />} />
-            <Route path="/ai" element={<Navigate to="/ai/ops" replace />} />
+            <Route path="/ai" element={<Navigate to="/dashboard/insight" replace />} />
             <Route path="/pm/overdue" element={<Navigate to="/pm/alerts" replace />} />
             <Route path="/finance/progress" element={<Navigate to="/supplier-portal/payments" replace />} />
             <Route path="/operation-center/overview" element={<Navigate to="/ioc/overview" replace />} />
@@ -248,6 +278,20 @@ export default function App() {
             <Route path="/operation-center/access-keys" element={<Navigate to="/ioc/access-keys" replace />} />
             <Route path="/operation-center/terminals" element={<Navigate to="/ioc/terminals" replace />} />
             <Route path="/operation-center/access-logs" element={<Navigate to="/ioc/access-logs" replace />} />
+            <Route path="/system/master-data-sources" element={<Navigate to="/system/master-data/service-config" replace />} />
+            <Route path="/system/humdg-integration" element={<Navigate to="/system/master-data/service-config" replace />} />
+            <Route path="/system/hmdm-integration" element={<Navigate to="/system/master-data/service-config" replace />} />
+            <Route path="/system/interface-integration" element={<Navigate to="/system/integration/business-interfaces" replace />} />
+            <Route path="/system/api-config" element={<Navigate to="/system/integration/business-interfaces" replace />} />
+            <Route path="/system/iot" element={<Navigate to="/system/integration/iot-devices" replace />} />
+            <Route path="/system/iot-devices" element={<Navigate to="/system/integration/iot-devices" replace />} />
+            <Route path="/system/security" element={<Navigate to="/system/users" replace />} />
+            <Route path="/system/basic" element={<Navigate to="/system/dictionary" replace />} />
+            <Route path="/system/master-data" element={<Navigate to="/system/master-data/service-config" replace />} />
+            <Route path="/system/integration" element={<Navigate to="/system/integration/standard-data" replace />} />
+            <Route path="/system/rules" element={<Navigate to="/system/rules/task-engine" replace />} />
+            <Route path="/system/notifications" element={<Navigate to="/system/notifications/messages" replace />} />
+            <Route path="/system/data-ops" element={<Navigate to="/system/data-ops/backup" replace />} />
 
             <Route path="/portal/home" element={<Navigate to="/supplier-portal/dashboard" replace />} />
             <Route path="/portal/invoices" element={<Navigate to="/supplier-portal/invoices" replace />} />
@@ -260,7 +304,7 @@ export default function App() {
                 <Route
                   key={`redirect-${g.id}`}
                   path={`/${g.id}`}
-                  element={<Navigate to={g.items[0]?.path ?? '/'} replace />}
+                  element={<Navigate to={firstMenuLeafPath(g.items) ?? '/'} replace />}
                 />
               )
             ))}

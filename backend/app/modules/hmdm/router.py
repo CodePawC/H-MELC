@@ -1,6 +1,6 @@
-"""H-UMDG 外部系统代理 API。
+"""标准主数据服务适配 API。
 
-H-UMDG 是医院统一主数据治理平台，负责权威字典和厂商机构主数据；H-MELC 只引用返回编码和快照。
+标准主数据服务负责权威字典和机构主数据；H-MELC 只消费标准编码、标准名称、当前状态和必要快照。
 """
 
 from __future__ import annotations
@@ -24,10 +24,12 @@ from app.modules.hmdm.schemas import (
     DeviceClassificationChangeCreate,
     DeviceClassificationChangeRead,
     DeviceClassificationMatchRequest,
+    DeviceClassificationRequestCreate,
     EquipmentStandardNameRequestCreate,
     HmdmCacheStatusResponse,
     HmdmStatusResponse,
     ManufacturerVendorRequestCreate,
+    OrganizationMasterRequestCreate,
     RequestRead,
 )
 
@@ -40,21 +42,21 @@ def _ensure_pg_integration() -> None:
     if engine.dialect.name != "postgresql":
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="H-UMDG 缓存与申请需 PostgreSQL 执行 alembic upgrade head（integration schema）。",
+            detail="标准主数据缓存与申请需 PostgreSQL 执行 alembic upgrade head（integration schema）。",
         )
     try:
         inspector = sa_inspect(engine)
         if not inspector.has_table("hmdm_dictionary_cache", schema="integration"):
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="H-UMDG 集成表未就绪：请执行 alembic upgrade head（含 e021_hmdm_external_integration）。",
+                detail="主数据服务集成表未就绪：请执行 alembic upgrade head（含 e021_hmdm_external_integration）。",
             )
     except HTTPException:
         raise
     except SQLAlchemyError as exc:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="H-UMDG 集成表状态检查失败，请确认 PostgreSQL 与 Alembic 迁移。",
+            detail="主数据服务集成表状态检查失败，请确认 PostgreSQL 与 Alembic 迁移。",
         ) from exc
 
 
@@ -66,13 +68,15 @@ def hmdm_root() -> dict:
     return envelope_ok(
         data={
             "module": "hmdm",
-            "name": "H-UMDG 外部主数据接入",
-            "boundary": "H-UMDG 是另一个系统，也是可选外部系统；H-MELC 只通过适配器代理查询、保存引用快照、只读缓存和候选申请。",
+            "name": "主数据来源设置",
+            "boundary": "主数据服务可以来自任意符合规范的标准数据服务；H-MELC 只通过适配器代理查询、保存引用快照、只读缓存和候选申请。",
             "paths": {
                 "status": "/api/v1/hmdm/status",
                 "equipment_categories_tree": "/api/v1/hmdm/equipment-categories/tree",
                 "equipment_standard_names": "/api/v1/hmdm/equipment-standard-names",
                 "manufacturer_vendors": "/api/v1/hmdm/manufacturer-vendors",
+                "device_classification_requests": "/api/v1/hmdm/device-classification-requests",
+                "organization_master_requests": "/api/v1/hmdm/organization-master-requests",
                 "device_classification_match": "/api/v1/master-data/device-classification/match",
                 "device_classification_changes": "/api/v1/master-data/device-classification/changes",
                 "cache_status": "/api/v1/hmdm/cache/status",
@@ -98,7 +102,7 @@ async def hmdm_status(
         except Exception as exc:
             last_failure_reason = str(exc)
     else:
-        last_failure_reason = "UMDG_API_BASE_URL 未配置或 MASTER_DATA_MODE=local"
+        last_failure_reason = "MASTER_DATA_BASE_URL 未配置或 MASTER_DATA_MODE=local"
     cache = service.cache_status(db)
     if connected:
         last_success_at = cache.get("latest_synced_at") or last_success_at
@@ -228,7 +232,7 @@ def create_equipment_standard_name_request(
     try:
         row = service.create_equipment_name_request(db, body, submitted_by=str(actor.sub))
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="H-UMDG 申请表未就绪") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据服务申请表未就绪") from exc
     data = RequestRead.model_validate(row).model_dump(mode="json")
     data["proposed_name"] = row.proposed_name
     return envelope_ok(data=data)
@@ -243,10 +247,86 @@ def create_manufacturer_vendor_request(
     try:
         row = service.create_manufacturer_vendor_request(db, body, submitted_by=str(actor.sub))
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="H-UMDG 申请表未就绪") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据服务申请表未就绪") from exc
     data = RequestRead.model_validate(row).model_dump(mode="json")
     data["proposed_standard_name"] = row.proposed_standard_name
     return envelope_ok(data=data)
+
+
+@router.post("/device-classification-requests", dependencies=[PgIntegrationStore])
+def create_device_classification_request(
+    db: DbSession,
+    body: DeviceClassificationRequestCreate,
+    actor: JwtClaims = Depends(require_roles(*RBAC_ASSET_WRITE)),
+) -> dict:
+    try:
+        row = service.create_device_classification_request(db, body, submitted_by=str(actor.sub))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据服务申请表未就绪") from exc
+    data = RequestRead.model_validate(row).model_dump(mode="json")
+    data["proposed_name"] = row.proposed_name
+    data["proposed_code"] = row.proposed_code
+    return envelope_ok(data=data)
+
+
+@router.post("/organization-master-requests", dependencies=[PgIntegrationStore])
+def create_organization_master_request(
+    db: DbSession,
+    body: OrganizationMasterRequestCreate,
+    actor: JwtClaims = Depends(require_roles(*RBAC_ASSET_WRITE)),
+) -> dict:
+    try:
+        row = service.create_organization_master_request(db, body, submitted_by=str(actor.sub))
+    except SQLAlchemyError as exc:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据服务申请表未就绪") from exc
+    data = RequestRead.model_validate(row).model_dump(mode="json")
+    data["object_type"] = row.object_type
+    data["proposed_name"] = row.proposed_name
+    data["proposed_code"] = row.proposed_code
+    return envelope_ok(data=data)
+
+
+@router.get("/supplement-requests", dependencies=[PgIntegrationStore])
+def list_supplement_requests(
+    db: DbSession,
+    status_filter: str | None = Query(None, alias="status"),
+    request_type: str | None = Query(None, alias="type"),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(20, ge=1, le=100),
+) -> dict:
+    """列出所有类型的主数据补充申请。"""
+    from app.modules.hmdm.models import (
+        EquipmentStandardNameRequest,
+        ManufacturerVendorRequest,
+        DeviceClassificationRequest,
+        OrganizationMasterRequest,
+    )
+    from sqlalchemy import union_all, literal_column
+
+    result: list[dict] = []
+    models = {
+        "equipment_standard_name": EquipmentStandardNameRequest,
+        "manufacturer_vendor": ManufacturerVendorRequest,
+        "device_classification": DeviceClassificationRequest,
+        "organization_master": OrganizationMasterRequest,
+    }
+    for req_type, model_cls in models.items():
+        if request_type and request_type != req_type:
+            continue
+        q = select(model_cls)
+        if status_filter:
+            q = q.where(model_cls.status == status_filter)
+        rows = db.scalars(q.order_by(model_cls.created_at.desc()).limit(page_size)).all()
+        for row in rows:
+            item = RequestRead.model_validate(row).model_dump(mode="json")
+            item["request_type"] = req_type
+            if hasattr(row, "proposed_name"):
+                item["proposed_name"] = row.proposed_name
+            elif hasattr(row, "proposed_standard_name"):
+                item["proposed_name"] = row.proposed_standard_name
+            result.append(item)
+
+    return envelope_ok(data={"items": result, "total": len(result), "page": page, "page_size": page_size})
 
 
 @router.get("/cache/status", dependencies=[PgIntegrationStore])
@@ -281,11 +361,11 @@ async def match_device_classification(
     body: DeviceClassificationMatchRequest,
     actor: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
 ) -> dict:
-    """H-UMDG 医疗器械分类目录匹配代理；返回多个候选项，不维护本地权威目录。"""
+    """标准医疗器械分类目录匹配代理；返回多个候选项，不维护本地权威目录。"""
     try:
         payload = await service.match_device_classification(db, body)
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="H-UMDG 分类匹配缓存不可用") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据分类匹配缓存不可用") from exc
     return envelope_ok(
         data=payload.model_dump(mode="json", by_alias=True),
         message="success",
@@ -298,11 +378,11 @@ async def list_device_classification_changes(
     since: datetime | None = Query(None),
     _actor: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
 ) -> dict:
-    """拉取 H-UMDG 医疗器械分类目录增量变更。"""
+    """拉取 标准医疗器械分类目录增量变更。"""
     try:
         rows = await service.pull_classification_changes(db, since=since)
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="H-UMDG 分类变更记录不可用") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据分类变更记录不可用") from exc
     return envelope_ok(data={"changes": [r.model_dump(mode="json", by_alias=True) for r in rows]})
 
 
@@ -312,9 +392,9 @@ def mock_device_classification_change(
     body: DeviceClassificationChangeCreate,
     _actor: JwtClaims = Depends(require_roles(*RBAC_ASSET_WRITE)),
 ) -> dict:
-    """本地联调用：模拟 H-UMDG 发布一条医疗器械分类目录变更。"""
+    """本地联调用：模拟 标准主数据服务 发布一条医疗器械分类目录变更。"""
     try:
         row = service.upsert_classification_change(db, body)
     except SQLAlchemyError as exc:
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="H-UMDG 分类变更记录不可用") from exc
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="主数据分类变更记录不可用") from exc
     return envelope_ok(data={"change": DeviceClassificationChangeRead.model_validate(row).model_dump(mode="json", by_alias=True)})
