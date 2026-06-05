@@ -115,6 +115,21 @@ export type MobilePrinterCapabilities = {
   systemPrint?: boolean
 }
 
+export type RepairReport = {
+  asset_id?: string | null
+  asset_code?: string | null
+  asset_name?: string | null
+  fault_description: string
+  fault_type: string
+  sender_name: string
+  sender_phone?: string | null
+}
+
+export type FaultTypeOption = {
+  code: string
+  label: string
+}
+
 export type MobilePrintJob = {
   source: 'h-melc'
   payload: AssetPrintLabelPayload

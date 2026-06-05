@@ -2,12 +2,14 @@ import './styles.css'
 
 import {
   clearToken,
+  createRepairReport,
   fetchAssetLabelTemplates,
   fetchAssetPrintLabel,
   fetchMe,
   getToken,
   login,
   postScanAsset,
+  scanAssetByQr,
   setToken,
 } from './api'
 import { renderLabelPreview } from './labelPreview'
@@ -23,8 +25,10 @@ import type {
   AssetLabelTemplatePreset,
   AssetPrintLabelPayload,
   CurrentUser,
+  FaultTypeOption,
   MobilePrinterConnectionMode,
   MobilePrinterInfo,
+  ScanAssetResult,
 } from './types'
 
 type AppState = {
@@ -45,6 +49,12 @@ type AppState = {
   selectedPrinterId: string
   connectedPrinter: MobilePrinterInfo | null
   quantity: number
+  currentTab: 'label' | 'repair'
+  repairAsset: ScanAssetResult | null
+  repairFaultType: string
+  repairFaultDesc: string
+  repairSenderPhone: string
+  repairSubmitted: boolean
 }
 
 const state: AppState = {
@@ -65,6 +75,12 @@ const state: AppState = {
   selectedPrinterId: '',
   connectedPrinter: null,
   quantity: 1,
+  currentTab: 'label' as 'label' | 'repair',
+  repairAsset: null as ScanAssetResult | null,
+  repairFaultType: '机械故障',
+  repairFaultDesc: '',
+  repairSenderPhone: '',
+  repairSubmitted: false,
 }
 
 const appElement = document.querySelector<HTMLDivElement>('#app')
@@ -145,20 +161,23 @@ function renderLogin(): string {
   `
 }
 
-function renderWorkspace(): string {
+const FAULT_TYPES: FaultTypeOption[] = [
+  { code: '机械故障', label: '机械故障' },
+  { code: '电气故障', label: '电气故障' },
+  { code: '软件故障', label: '软件/系统故障' },
+  { code: '网络故障', label: '网络连接故障' },
+  { code: '外观损坏', label: '外观/结构损坏' },
+  { code: '计量偏差', label: '计量/精度偏差' },
+  { code: '耗材更换', label: '耗材更换' },
+  { code: '定期保养', label: '定期保养' },
+  { code: '其他', label: '其他' },
+]
+
+function renderLabelWorkspace(): string {
   const caps = getPrintCapabilities()
   const label = state.label
   const connectedPrinter = state.connectedPrinter
   return `
-    <main class="mobile-shell">
-      <header class="app-header">
-        <div>
-          <p class="eyebrow">现场巡检</p>
-          <h1>标签补打</h1>
-        </div>
-        <button id="logoutButton" class="ghost-button" type="button">退出</button>
-      </header>
-
       <section class="user-strip">
         <span>${escapeHtml(state.user?.display_name || state.user?.username || '已登录')}</span>
         <span>${statusPill('App桥接', caps.nativeBridge)}${statusPill('手机蓝牙', caps.nativeBluetooth || caps.webBluetooth)}${statusPill('手机WiFi', caps.nativeWifi)}${statusPill('系统打印', caps.browserPrint)}</span>
@@ -278,11 +297,128 @@ function renderWorkspace(): string {
   `
 }
 
+function renderRepairForm(): string {
+  const asset = state.repairAsset
+  return `
+    <section class="panel">
+      <h2>设备定位</h2>
+      <form id="repairLookupForm" class="form-stack">
+        <label>
+          扫描设备二维码或输入 token
+          <textarea name="qrToken" rows="2" placeholder="扫码结果或 token"></textarea>
+        </label>
+        <button class="primary-button" type="submit" ${state.busy ? 'disabled' : ''}>解析设备</button>
+      </form>
+      ${asset ? `
+        <div class="asset-summary" style="margin-top:8px">
+          <strong>${escapeHtml(asset.asset_name)}</strong>
+          <span>${escapeHtml(asset.asset_code)}</span>
+        </div>
+      ` : '<p style="color:#6b7280;font-size:13px">请先扫描或输入设备二维码定位故障设备</p>'}
+    </section>
+
+    <form id="repairForm" class="form-stack panel">
+      <h2>故障信息</h2>
+      <label>
+        故障类型
+        <select name="faultType">
+          ${FAULT_TYPES.map(ft =>
+            `<option value="${escapeHtml(ft.code)}" ${ft.code === state.repairFaultType ? 'selected' : ''}>${escapeHtml(ft.label)}</option>`
+          ).join('')}
+        </select>
+      </label>
+      <label>
+        故障描述
+        <textarea name="faultDesc" rows="4" placeholder="请详细描述故障现象">${escapeHtml(state.repairFaultDesc)}</textarea>
+      </label>
+      <label>
+        联系电话
+        <input name="senderPhone" type="tel" placeholder="手机号" value="${escapeHtml(state.repairSenderPhone)}" />
+      </label>
+      ${state.repairSubmitted ? '<div style="padding:12px;background:#dcfce7;border-radius:8px;color:#166534">报修已提交，等待工程师处理</div>' : ''}
+      <button class="primary-button" type="submit" ${state.busy || !asset || state.repairSubmitted ? 'disabled' : ''}>
+        ${state.busy ? '提交中...' : '提交报修'}
+      </button>
+    </form>
+  `
+}
+
+function handleTabSwitch(event: Event): void {
+  const tab = (event.currentTarget as HTMLElement).dataset.tab
+  if (tab === 'label' || tab === 'repair') {
+    state.currentTab = tab
+    state.error = ''
+    state.message = ''
+    render()
+  }
+}
+
+async function handleRepairLookup(event: SubmitEvent): Promise<void> {
+  event.preventDefault()
+  const form = new FormData(event.currentTarget as HTMLFormElement)
+  const raw = String(form.get('qrToken') || '').trim()
+  if (!raw) { state.error = '请输入二维码内容'; render(); return }
+  await withBusy(async () => {
+    const asset = await scanAssetByQr(normalizeQrInput(raw))
+    state.repairAsset = asset
+    state.repairSubmitted = false
+    state.message = `已定位设备：${asset.asset_name}`
+  })
+}
+
+async function handleRepairSubmit(event: SubmitEvent): Promise<void> {
+  event.preventDefault()
+  const form = new FormData(event.currentTarget as HTMLFormElement)
+  await withBusy(async () => {
+    if (!state.repairAsset) { throw new Error('请先定位设备') }
+    const faultType = String(form.get('faultType') || '其他')
+    const faultDesc = String(form.get('faultDesc') || '').trim()
+    if (!faultDesc) { throw new Error('请填写故障描述') }
+    const phone = String(form.get('senderPhone') || '').trim()
+    const user = state.user
+    await createRepairReport(
+      state.repairAsset.asset_id,
+      faultDesc,
+      faultType,
+      user?.display_name || user?.username || '移动报修',
+      phone || undefined,
+    )
+    state.repairSubmitted = true
+    state.repairFaultType = faultType
+    state.repairFaultDesc = faultDesc
+    state.repairSenderPhone = phone
+    state.message = '报修已提交'
+  })
+}
+
 function render(): void {
   app.innerHTML = state.booting
     ? '<main class="mobile-shell"><div class="empty-state">正在连接平台</div></main>'
     : state.user
-      ? renderWorkspace()
+      ? (() => {
+          const tabBar = `
+            <div class="tab-bar">
+              <button class="tab-item ${state.currentTab === 'label' ? 'active' : ''}" data-tab="label" type="button">标签打印</button>
+              <button class="tab-item ${state.currentTab === 'repair' ? 'active' : ''}" data-tab="repair" type="button">故障报修</button>
+            </div>`
+          const content = state.currentTab === 'label' ? renderLabelWorkspace() : renderRepairForm()
+          return `<main class="mobile-shell">
+            <header class="app-header">
+              <div>
+                <p class="eyebrow">移动终端</p>
+                <h1>${state.currentTab === 'label' ? '标签打印' : '故障报修'}</h1>
+              </div>
+              <button id="logoutButton" class="ghost-button" type="button">退出</button>
+            </header>
+            <section class="user-strip">
+              <span>${escapeHtml(state.user?.display_name || state.user?.username || '已登录')}</span>
+            </section>
+            ${tabBar}
+            ${content}
+            ${state.message ? `<p class="toast success-toast">${escapeHtml(state.message)}</p>` : ''}
+            ${state.error ? `<p class="toast error-toast">${escapeHtml(state.error)}</p>` : ''}
+          </main>`
+        })()
       : renderLogin()
 
   bindEvents()
@@ -311,6 +447,11 @@ function bindEvents(): void {
   document.querySelectorAll<HTMLButtonElement>('[data-printer-mode]').forEach((button) => {
     button.addEventListener('click', handlePrinterModeChange)
   })
+  document.querySelectorAll<HTMLButtonElement>('[data-tab]').forEach((button) => {
+    button.addEventListener('click', handleTabSwitch)
+  })
+  document.querySelector<HTMLFormElement>('#repairLookupForm')?.addEventListener('submit', handleRepairLookup)
+  document.querySelector<HTMLFormElement>('#repairForm')?.addEventListener('submit', handleRepairSubmit)
 }
 
 async function withBusy(action: () => Promise<void>): Promise<void> {

@@ -137,3 +137,31 @@ export async function fetchAssetPrintLabel(assetId: string, templateCode?: strin
   const q = sp.toString()
   return apiRequest<AssetPrintLabelPayload>(`/api/v1/assets/${encodeURIComponent(assetId)}/print-label${q ? `?${q}` : ''}`)
 }
+
+export async function scanAssetByQr(qrToken: string): Promise<ScanAssetResult> {
+  return apiRequest<ScanAssetResult>('/api/v1/scan/asset', {
+    method: 'POST',
+    body: JSON.stringify({ qr_token: qrToken }),
+  })
+}
+
+export async function createRepairReport(
+  assetId: string,
+  faultDesc: string,
+  faultType: string,
+  senderName: string,
+  senderPhone?: string,
+): Promise<{ message_id: string; message_no: string }> {
+  return apiRequest<{ message_id: string; message_no: string }>('/api/v1/repair-center/messages', {
+    method: 'POST',
+    body: JSON.stringify({
+      source_channel: 'MOBILE',
+      source_channel_name: '移动报修',
+      raw_message_type: 'TEXT',
+      raw_message_content: `[${faultType}] ${faultDesc}`,
+      asset_id: assetId,
+      sender_name: senderName,
+      sender_phone: senderPhone || null,
+    }),
+  })
+}
