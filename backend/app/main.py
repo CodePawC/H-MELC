@@ -14,6 +14,7 @@ from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
+from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.integrations.minio_client import ensure_minio_bucket
 from app.modules import register_routers
@@ -53,6 +54,29 @@ def _configure_cors() -> None:
 
 
 _configure_cors()
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """生产安全响应头（等保合规）。"""
+
+    async def dispatch(self, request, call_next):
+        response = await call_next(request)
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline'; "
+            "style-src 'self' 'unsafe-inline'; "
+            "img-src 'self' data: blob:; "
+            "connect-src 'self' ws: wss:; "
+            "font-src 'self' data:; "
+            "frame-ancestors 'none'"
+        )
+        return response
+
+
+app.add_middleware(SecurityHeadersMiddleware)
 
 
 def _sanitize_database_url(database_url: str) -> str:
