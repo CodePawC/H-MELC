@@ -463,3 +463,34 @@ def mark_notification_read(
     )
     db.commit()
     return envelope_ok(data={"id": nid, "is_read": True})
+
+@supplier_router.get("/workbench")
+def supplier_workbench(
+    db: DbSession,
+    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+) -> dict:
+    oid = str(claims.sub)
+    enroll = db.execute(text("SELECT count(*) FROM supplier.procurement_enrollment WHERE organization_id = :oid"), {"oid": oid}).scalar() or 0
+    pending = db.execute(text("SELECT count(*) FROM supplier.procurement_enrollment WHERE organization_id = :oid AND status = 'PENDING'"), {"oid": oid}).scalar() or 0
+    bids = db.execute(text("SELECT count(*) FROM supplier.procurement_bid WHERE organization_id = :oid"), {"oid": oid}).scalar() or 0
+    quals = db.execute(text("SELECT count(*) FROM supplier.qualification WHERE organization_id = :oid"), {"oid": oid}).scalar() or 0
+    unread = db.execute(text("SELECT count(*) FROM supplier.notification_message WHERE organization_id = :oid AND is_read = false"), {"oid": oid}).scalar() or 0
+    return envelope_ok(data={"enroll_count": enroll, "pending_count": pending, "bid_count": bids, "qual_count": quals, "notif_unread": unread})
+
+
+@router.get("/{project_id}/comparison", dependencies=[PgDep])
+def bid_comparison(db: DbSession, project_id: str, _: JwtClaims = Depends(require_roles(*RBAC_PROCUREMENT_READ))) -> dict:
+    project = db.execute(text("SELECT * FROM supplier.procurement_project WHERE id = :id"), {"id": project_id}).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="项目不存在")
+    bids = db.execute(
+        text("SELECT b.*, o.legal_name, o.short_name FROM supplier.procurement_bid b LEFT JOIN supplier.organization o ON o.id = b.organization_id WHERE b.project_id = :pid ORDER BY b.quoted_amount"),
+        {"pid": project_id},
+    ).all()
+    items = [{"id": str(r.id), "organization_id": str(r.organization_id), "legal_name": getattr(r, "legal_name", ""), "short_name": getattr(r, "short_name", ""), "quoted_amount": float(r.quoted_amount), "currency": r.currency, "remark": r.remark or "", "bid_status": r.bid_status or "SUBMITTED", "attachment_name": r.attachment_name or "", "created_at": r.created_at.isoformat() if r.created_at else None} for r in bids]
+    prices = [b["quoted_amount"] for b in items]
+    mn = min(prices) if prices else 0
+    mx = max(prices) if prices else 0
+    avg = round(sum(prices)/len(prices), 2) if prices else 0
+    return envelope_ok(data={"project_title": project.title, "project_code": project.project_code or "", "items": items, "total": len(items), "stats": {"min_price": mn, "max_price": mx, "avg_price": avg, "bidder_count": len(items)}})
+

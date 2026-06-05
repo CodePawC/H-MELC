@@ -20,6 +20,7 @@ type MenuItem = { key: string; icon: React.ReactNode; label: string }
 
 const menuItems: MenuItem[] = [
   { key: '/dashboard', icon: <DashboardOutlined />, label: '首页' },
+  { key: '/workbench', icon: <ProjectOutlined />, label: '供应商工作台' },
   { key: '/projects', icon: <ProjectOutlined />, label: '项目中心' },
   { key: '/invoices', icon: <FileProtectOutlined />, label: '发票管理' },
   { key: '/payments', icon: <DollarOutlined />, label: '付款进度' },
