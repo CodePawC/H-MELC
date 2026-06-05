@@ -21,7 +21,7 @@ const STATUS_COLORS: Record<string, string> = {
   BIDDING: 'volcano', EVALUATING: 'gold', AWARDED: 'green',
 }
 
-const API = 'http://127.0.0.1:8103'
+const API = ''
 
 export function ProcurementPortalPage() {
   const [items, setItems] = useState<ProjectItem[]>([])
