@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     minio_region: str | None = None
 
+    # 智能建档图片/票据识别：可接院内 OCR 服务、视觉大模型网关或规则抽取服务。
+    asset_intake_extractor_mode: str = Field(default="manual", validation_alias="ASSET_INTAKE_EXTRACTOR_MODE")
+    asset_intake_extractor_url: str = Field(default="", validation_alias="ASSET_INTAKE_EXTRACTOR_URL")
+    asset_intake_extractor_api_key: str = Field(default="", validation_alias="ASSET_INTAKE_EXTRACTOR_API_KEY")
+    asset_intake_extractor_provider: str = Field(default="asset-intake-extractor", validation_alias="ASSET_INTAKE_EXTRACTOR_PROVIDER")
+    asset_intake_extractor_model: str = Field(default="", validation_alias="ASSET_INTAKE_EXTRACTOR_MODEL")
+    asset_intake_extractor_timeout_ms: int = Field(default=30000, validation_alias="ASSET_INTAKE_EXTRACTOR_TIMEOUT")
+
     cors_origins: str = (
         "http://localhost:5102,http://127.0.0.1:5102,"
         "http://localhost:5173,http://127.0.0.1:5173,"
@@ -47,6 +55,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "dev-jwt-secret-change-me-in-production-min-32-chars!!"
     jwt_algorithm: str = "HS256"
     jwt_access_token_expire_minutes: int = 720
+
+    # 速率限制：开启后登录 10次/分钟，API 120次/分钟
+    rate_limit_enabled: bool = False
 
     # 认证模式：standalone（默认，本地用户表）/ unified（H-UMDG 统一身份）
     auth_mode: str = "standalone"

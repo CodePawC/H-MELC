@@ -10,7 +10,7 @@
 from contextlib import asynccontextmanager
 from urllib.parse import urlparse, urlunparse
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
@@ -77,6 +77,10 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
 
 
 app.add_middleware(SecurityHeadersMiddleware)
+
+# 速率限制中间件（暴力破解防护）：config.rate_limit_enabled=True 时启用
+from app.core.ratelimit import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware)
 
 
 def _sanitize_database_url(database_url: str) -> str:
