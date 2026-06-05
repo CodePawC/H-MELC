@@ -8,6 +8,7 @@ import { ProAdminLayout } from './layout/ProAdminLayout'
 import { AssetDetailPage } from './pages/AssetDetailPage'
 import { AssetCreatePage } from './pages/AssetCreatePage'
 import { AssetCodesPage } from './pages/AssetCodesPage'
+import { AssetIntakeExtractorConfigPage } from './pages/AssetIntakeExtractorConfigPage'
 import { AssetsOverviewPage } from './pages/AssetsOverviewPage'
 import { AssetsPage } from './pages/AssetsPage'
 import { AiGatewayPage } from './pages/AiGatewayPage'
@@ -56,6 +57,7 @@ import { RoleManagementPage } from './pages/System/Role/RoleManagementPage'
 import { UserManagementPage } from './pages/System/User/UserManagementPage'
 import { WorkflowConsolePage } from './pages/WorkflowConsolePage'
 import { SupplementRequestPage } from './pages/SupplementRequestPage'
+import { ProcurementManagementPage } from './pages/ProcurementManagementPage'
 import { WorkspaceRisksPage } from './pages/workspace/WorkspaceRisksPage'
 import { WorkspaceTodosPage } from './pages/workspace/WorkspaceTodosPage'
 
@@ -122,10 +124,14 @@ function AdminRoutePage({ leaf }: { leaf: AdminMenuLeaf }) {
       return <SupplierProjectsPage />
     case 'procurementWorkbench':
       return <ProcurementWorkbenchPage />
+    case 'procurementManagement':
+      return <ProcurementManagementPage />
     case 'workflowConsole':
       return <WorkflowConsolePage />
     case 'mdmDictionary':
       return <MdmDictionaryPage />
+    case 'assetIntakeExtractorConfig':
+      return <AssetIntakeExtractorConfigPage />
     case 'masterDataSourceConfig':
       return <MasterDataSourceConfigPage />
     case 'masterDataObjects':

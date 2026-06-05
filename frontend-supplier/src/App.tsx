@@ -9,6 +9,7 @@ import { ProjectsPage } from './pages/ProjectsPage'
 import { InvoicesPage } from './pages/InvoicesPage'
 import { PaymentsPage } from './pages/PaymentsPage'
 import { QualificationsPage } from './pages/QualificationsPage'
+import { ProcurementPortalPage } from './pages/ProcurementPortalPage'
 import { getToken } from './lib/token'
 import { useAuthStore } from './stores/authStore'
 import { apiRequest } from './lib/api'
@@ -48,6 +49,7 @@ function AppRoutes() {
 
   return (
     <Routes>
+      <Route path="/portal" element={<ProcurementPortalPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />

@@ -37,6 +37,7 @@ export type AdminPageKind =
   | 'procurementWorkbench'
   | 'workflowConsole'
   | 'mdmDictionary'
+  | 'assetIntakeExtractorConfig'
   | 'masterDataSourceConfig'
   | 'masterDataObjects'
   | 'masterDataFieldMapping'
@@ -78,6 +79,7 @@ export type AdminPageKind =
   | 'portalInvoices'
   | 'portalPayments'
   | 'portalQuotations'
+  | 'procurementManagement'
 
 export type MenuAccess = 'internal' | 'supplier' | 'both'
 
@@ -421,6 +423,7 @@ const LEGACY_ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
           { path: '/system/dictionary', label: '数据字典', page: 'mdmDictionary', requiredPermissions: ['mdm:dict:view'] },
           presetLeaf('/system/coding-rules', '编码规则', ['system:param:view']),
           presetLeaf('/system/parameters', '参数配置', ['system:param:view'], { hospitalPreset: 'sys_params' }),
+          { path: '/system/ai/asset-intake-extractor', label: '图片识别服务', page: 'assetIntakeExtractorConfig', requiredPermissions: ['system:param:view'] },
           { path: '/system/workflows', label: '审批流配置', page: 'workflowConsole', requiredPermissions: ['workflow:config:view'] },
         ],
       },
@@ -543,6 +546,7 @@ export const ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
     allowedRoles: [...R_INT, 'SUPPLIER_PORTAL'],
     items: [
       { path: '/purchase/apply', label: '采购管理', icon: '🛒', page: 'procurementWorkbench', requiredPermissions: p.pur },
+      { path: '/procurement/manage', label: '采购协同', icon: '📋', page: 'procurementManagement', requiredPermissions: p.pur },
       { path: '/supplier/profiles', label: '供应商管理', icon: '🤝', page: 'supplierProfiles', requiredPermissions: ['supplier:profile:view'] },
       { path: '/finance/payables', label: '财务管理', icon: '💰', page: 'financePayables', requiredPermissions: p.fin },
     ],
@@ -555,6 +559,7 @@ export const ADMIN_MENU_GROUPS: AdminMenuGroup[] = [
     items: [
       { path: '/system/users', label: '用户与权限', icon: '👥', page: 'systemUsers', requiredPermissions: ['system:user:view'] },
       { path: '/system/dictionary', label: '基础数据配置', icon: '⚙️', page: 'mdmDictionary', requiredPermissions: ['mdm:dict:view'] },
+      { path: '/system/ai/asset-intake-extractor', label: '图片识别服务', icon: '🤖', page: 'assetIntakeExtractorConfig', requiredPermissions: ['system:param:view'] },
       { path: '/system/master-data/service-config', label: '主数据来源设置', icon: '🧭', page: 'masterDataSourceConfig', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
       { path: '/system/master-data/objects', label: '数据对象管理', icon: '🗂️', page: 'masterDataObjects', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
       { path: '/system/master-data/field-mapping', label: '字段映射规则', icon: '🧬', page: 'masterDataFieldMapping', requiredPermissions: ['mdm:dict:view', 'system:param:view'] },
