@@ -80,6 +80,7 @@ export type AdminPageKind =
   | 'portalPayments'
   | 'portalQuotations'
   | 'procurementManagement'
+  | 'bidComparison'
 
 export type MenuAccess = 'internal' | 'supplier' | 'both'
 

@@ -494,3 +494,38 @@ def bid_comparison(db: DbSession, project_id: str, _: JwtClaims = Depends(requir
     avg = round(sum(prices)/len(prices), 2) if prices else 0
     return envelope_ok(data={"project_title": project.title, "project_code": project.project_code or "", "items": items, "total": len(items), "stats": {"min_price": mn, "max_price": mx, "avg_price": avg, "bidder_count": len(items)}})
 
+@router.get("/{project_id}/clarifications", dependencies=[PgDep])
+def list_clarifications(db: DbSession, project_id: str, _: JwtClaims = Depends(require_roles(*RBAC_PROCUREMENT_READ))) -> dict:
+    rows = db.execute(text("SELECT * FROM supplier.procurement_clarification WHERE project_id = :pid ORDER BY created_at"), {"pid": project_id}).all()
+    items = [{"id": str(r.id), "question": r.question, "question_by": r.question_by or "", "question_at": r.question_at.isoformat() if r.question_at else None, "answer": r.answer or "", "answer_by": r.answer_by or "", "answered_at": r.answered_at.isoformat() if r.answered_at else None, "is_public": bool(r.is_public)} for r in rows]
+    return envelope_ok(data={"items": items, "total": len(items)})
+
+@router.post("/{project_id}/clarifications", dependencies=[PgDep])
+def create_clarification(db: DbSession, project_id: str, body: dict[str, Any], actor: JwtClaims = Depends(require_roles(*RBAC_PROCUREMENT_REVIEW))) -> dict:
+    import uuid as _uuid
+    q = body.get("question", "")
+    if not q: raise HTTPException(status_code=400, detail="问题不能为空")
+    cid = str(_uuid.uuid4())
+    db.execute(text("INSERT INTO supplier.procurement_clarification (id, project_id, question, question_by) VALUES (:id, :pid, :q, :by)"), {"id": cid, "pid": project_id, "q": q, "by": str(actor.sub)})
+    db.commit()
+    return envelope_ok(data={"id": cid, "question": q})
+
+@router.post("/{project_id}/clarifications/{clarification_id}/answer", dependencies=[PgDep])
+def answer_clarification(db: DbSession, project_id: str, clarification_id: str, body: dict[str, Any], actor: JwtClaims = Depends(require_roles(*RBAC_PROCUREMENT_REVIEW))) -> dict:
+    a = body.get("answer", "")
+    if not a: raise HTTPException(status_code=400, detail="答复不能为空")
+    db.execute(text("UPDATE supplier.procurement_clarification SET answer = :a, answer_by = :by, answered_at = :now WHERE id = :id AND project_id = :pid"), {"a": a, "by": str(actor.sub), "now": _ts(), "id": clarification_id, "pid": project_id})
+    db.commit()
+    return envelope_ok(data={"id": clarification_id, "answer": a})
+
+@router.post("/{project_id}/notify", dependencies=[PgDep])
+def send_project_notification(db: DbSession, project_id: str, body: dict[str, Any], _: JwtClaims = Depends(require_roles(*RBAC_PROCUREMENT_REVIEW))) -> dict:
+    t = body.get("title", ""); c = body.get("content", "")
+    if not t or not c: raise HTTPException(status_code=400, detail="标题和内容不能为空")
+    orgs = db.execute(text("SELECT DISTINCT organization_id FROM supplier.procurement_enrollment WHERE project_id = :pid"), {"pid": project_id}).all()
+    cnt = 0
+    for org in orgs:
+        db.execute(text("INSERT INTO supplier.notification_message (organization_id, title, content, notification_type) VALUES (:oid, :t, :c, 'PROJECT')"), {"oid": str(org[0]), "t": t, "c": c})
+        cnt += 1
+    db.commit()
+    return envelope_ok(data={"sent_count": cnt, "title": t})

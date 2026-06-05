@@ -58,6 +58,7 @@ import { UserManagementPage } from './pages/System/User/UserManagementPage'
 import { WorkflowConsolePage } from './pages/WorkflowConsolePage'
 import { SupplementRequestPage } from './pages/SupplementRequestPage'
 import { ProcurementManagementPage } from './pages/ProcurementManagementPage'
+import { BidComparisonPage } from './pages/BidComparisonPage'
 import { WorkspaceRisksPage } from './pages/workspace/WorkspaceRisksPage'
 import { WorkspaceTodosPage } from './pages/workspace/WorkspaceTodosPage'
 
@@ -126,6 +127,8 @@ function AdminRoutePage({ leaf }: { leaf: AdminMenuLeaf }) {
       return <ProcurementWorkbenchPage />
     case 'procurementManagement':
       return <ProcurementManagementPage />
+    case 'bidComparison':
+      return <BidComparisonPage />
     case 'workflowConsole':
       return <WorkflowConsolePage />
     case 'mdmDictionary':
