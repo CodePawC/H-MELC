@@ -310,7 +310,7 @@ def list_public_projects(
 ) -> dict:
     """对外展示采购项目列表（公开）。"""
     where = ["is_public = true", "draft = false"]
-    params: dict[str, Any] = {"pub": True}
+    params: dict[str, Any] = {}
     if keyword:
         where.append("(title ILIKE :kw OR project_code ILIKE :kw)")
         params["kw"] = f"%{keyword}%"
@@ -321,8 +321,11 @@ def list_public_projects(
         where.append("status = :st")
         params["st"] = status
     else:
-        where.append("status IN :pub_st")
-        params["pub_st"] = tuple(PUBLIC_STATUSES)
+        pub_list = list(PUBLIC_STATUSES)
+        ph = ", ".join(f":pub_{i}" for i in range(len(pub_list)))
+        where.append(f"status IN ({ph})")
+        for i, s in enumerate(pub_list):
+            params[f"pub_{i}"] = s
 
     sql_where = " AND ".join(where)
     total = db.execute(text(f"SELECT count(*) FROM supplier.procurement_project WHERE {sql_where}"), params).scalar() or 0
