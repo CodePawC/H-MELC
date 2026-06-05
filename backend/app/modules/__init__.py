@@ -15,6 +15,7 @@ from app.modules.asset.router import router as asset_router
 from app.modules.finance.router import router as finance_router
 from app.modules.hmdm.router import master_data_router
 from app.modules.hmdm.router import router as hmdm_router
+from app.modules.integration_center.router import router as integration_center_router
 from app.modules.knowledge.router import router as knowledge_router
 from app.modules.repair.router import router as repair_router
 from app.modules.repair_center.router import router as repair_center_router
@@ -31,6 +32,9 @@ from app.modules.metrology.router import router as metrology_router
 from app.modules.operation_center.router import management_router as operation_center_router
 from app.modules.operation_center.router import screen_router
 from app.modules.operation_center.router import screen_ws_router
+from app.modules.procurement.router import router as procurement_router
+from app.modules.procurement.router import portal_router as procurement_portal_router
+from app.modules.procurement.router import supplier_router as procurement_supplier_router
 
 
 def register_routers(app: FastAPI) -> None:
@@ -51,6 +55,7 @@ def register_routers(app: FastAPI) -> None:
     v1.include_router(finance_router)
     v1.include_router(hmdm_router)
     v1.include_router(master_data_router)
+    v1.include_router(integration_center_router)
     v1.include_router(workflow_router)
     v1.include_router(ai_router)
     v1.include_router(knowledge_router)
@@ -58,6 +63,9 @@ def register_routers(app: FastAPI) -> None:
     v1.include_router(pm_router)
     v1.include_router(metrology_router)
     v1.include_router(operation_center_router)
+    v1.include_router(procurement_router)
+    v1.include_router(procurement_portal_router)
+    v1.include_router(procurement_supplier_router)
     app.include_router(v1)
     app.include_router(screen_router)
     app.include_router(screen_ws_router)
