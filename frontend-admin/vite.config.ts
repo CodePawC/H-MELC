@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => {
   const proxyTarget =
     env.VITE_API_PROXY_TARGET?.trim() ||
     process.env.VITE_API_PROXY_TARGET?.trim() ||
-    'http://127.0.0.1:8102'
+    'http://127.0.0.1:8104'
   const proxyGatewayKey = (env.API_PROXY_GATEWAY_KEY ?? '').trim()
   const proxyGatewayHeader = (env.API_PROXY_GATEWAY_HEADER ?? 'X-API-Key').trim() || 'X-API-Key'
 
