@@ -11,6 +11,8 @@ import { PaymentsPage } from './pages/PaymentsPage'
 import { QualificationsPage } from './pages/QualificationsPage'
 import { ProcurementPortalPage } from './pages/ProcurementPortalPage'
 import { SupplierWorkbenchPage } from './pages/SupplierWorkbenchPage'
+import { MyEnrollmentsPage } from './pages/MyEnrollmentsPage'
+import { NotificationsPage } from './pages/NotificationsPage'
 import { getToken } from './lib/token'
 import { useAuthStore } from './stores/authStore'
 import { apiRequest } from './lib/api'
@@ -52,6 +54,8 @@ function AppRoutes() {
     <Routes>
       <Route path="/portal" element={<ProcurementPortalPage />} />
       <Route path="/workbench" element={<SupplierWorkbenchPage />} />
+      <Route path="/my-enrollments" element={<MyEnrollmentsPage />} />
+      <Route path="/notifications" element={<NotificationsPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/projects" element={<ProtectedRoute><ProjectsPage /></ProtectedRoute>} />

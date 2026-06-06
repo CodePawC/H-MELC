@@ -2,12 +2,14 @@ import { useNavigate } from 'react-router-dom'
 import { Avatar, Button, Dropdown, Layout, Menu, Modal, Typography } from 'antd'
 import {
   BankOutlined,
+  BellOutlined,
   DashboardOutlined,
   DollarOutlined,
   FileProtectOutlined,
   LogoutOutlined,
   ProjectOutlined,
   SafetyCertificateOutlined,
+  UnorderedListOutlined,
   UserOutlined,
 } from '@ant-design/icons'
 import { useAuthStore } from './stores/authStore'
@@ -21,6 +23,8 @@ type MenuItem = { key: string; icon: React.ReactNode; label: string }
 const menuItems: MenuItem[] = [
   { key: '/dashboard', icon: <DashboardOutlined />, label: '首页' },
   { key: '/workbench', icon: <ProjectOutlined />, label: '供应商工作台' },
+  { key: '/my-enrollments', icon: <UnorderedListOutlined />, label: '我的报名' },
+  { key: '/notifications', icon: <BellOutlined />, label: '消息通知' },
   { key: '/projects', icon: <ProjectOutlined />, label: '项目中心' },
   { key: '/invoices', icon: <FileProtectOutlined />, label: '发票管理' },
   { key: '/payments', icon: <DollarOutlined />, label: '付款进度' },
