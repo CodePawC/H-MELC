@@ -24,6 +24,7 @@ from app.modules.auth.rbac import (
     RBAC_PROCUREMENT_PUBLISH,
     RBAC_PROCUREMENT_READ,
     RBAC_PROCUREMENT_REVIEW,
+    RBAC_SUPPLIER_PROCUREMENT,
 )
 from app.modules.auth.schemas import JwtClaims
 
@@ -43,6 +44,22 @@ def _ensure_pg() -> None:
     if engine.dialect.name != "postgresql":
         raise HTTPException(status_code=503, detail="采购协同管理需要 PostgreSQL")
 
+
+def _resolve_supplier_org(db, claims):
+    """Extract organization_id from claims (supports both admin and supplier JWT)."""
+    if claims is None:
+        return None
+    try:
+        if "SUPPLIER" in claims.roles:
+            row = db.execute(
+                text("SELECT organization_id FROM supplier.portal_account WHERE id = :id AND is_active = true"),
+                {"id": str(claims.sub)}
+            ).first()
+            if row:
+                return str(row[0])
+    except Exception:
+        pass
+    return str(claims.sub)
 
 PgDep = Depends(_ensure_pg)
 
@@ -358,7 +375,7 @@ def get_public_project_detail(db: DbSession, project_id: str) -> dict:
 @supplier_router.get("/enrollments")
 def list_my_enrollments(
     db: DbSession,
-    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+    claims: JwtClaims = Depends(require_roles(*RBAC_SUPPLIER_PROCUREMENT)),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> dict:
@@ -368,9 +385,9 @@ def list_my_enrollments(
              "FROM supplier.procurement_enrollment e "
              "LEFT JOIN supplier.procurement_project p ON p.id = e.project_id "
              "WHERE e.organization_id = :oid ORDER BY e.created_at DESC LIMIT :limit OFFSET :offset"),
-        {"oid": claims.sub, "limit": page_size, "offset": (page - 1) * page_size},
+        {"oid": _resolve_supplier_org(db, claims) or "", "limit": page_size, "offset": (page - 1) * page_size},
     ).all()
-    total = db.execute(text("SELECT count(*) FROM supplier.procurement_enrollment WHERE organization_id = :oid"), {"oid": claims.sub}).scalar() or 0
+    total = db.execute(text("SELECT count(*) FROM supplier.procurement_enrollment WHERE organization_id = :oid"), {"oid": _resolve_supplier_org(db, claims) or ""}).scalar() or 0
     items = []
     for r in rows:
         d = _enrollment_to_dict(r)
@@ -385,7 +402,7 @@ def list_my_enrollments(
 def create_enrollment(
     db: DbSession,
     body: dict[str, Any],
-    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+    claims: JwtClaims = Depends(require_roles(*RBAC_SUPPLIER_PROCUREMENT)),
 ) -> dict:
     """供应商报名参加项目。"""
     project_id = body.get("project_id", "")
@@ -402,7 +419,7 @@ def create_enrollment(
     # Check duplicate
     existing = db.execute(
         text("SELECT id FROM supplier.procurement_enrollment WHERE project_id = :pid AND organization_id = :oid"),
-        {"pid": project_id, "oid": claims.sub},
+        {"pid": project_id, "oid": _resolve_supplier_org(db, claims) or ""},
     ).first()
     if existing:
         raise HTTPException(status_code=409, detail="已报名该项目")
@@ -413,7 +430,7 @@ def create_enrollment(
         text("INSERT INTO supplier.procurement_enrollment (id, project_id, organization_id, portal_account_id, "
              "contact_name, contact_phone, contact_email) "
              "VALUES (:id, :pid, :oid, :paid, :cn, :cp, :ce)"),
-        {"id": eid, "pid": project_id, "oid": claims.sub, "paid": str(claims.sub),
+        {"id": eid, "pid": project_id, "oid": _resolve_supplier_org(db, claims) or "", "paid": str(claims.sub),
          "cn": body.get("contact_name", ""), "cp": body.get("contact_phone", ""), "ce": body.get("contact_email", "")},
     )
     db.commit()
@@ -422,7 +439,7 @@ def create_enrollment(
     db.execute(
         text("INSERT INTO supplier.notification_message (organization_id, title, content, notification_type) "
              "VALUES (:oid, :title, :content, 'ENROLLMENT')"),
-        {"oid": claims.sub, "title": "报名成功", "content": f"您已成功报名项目：{project.title}"},
+        {"oid": _resolve_supplier_org(db, claims) or "", "title": "报名成功", "content": f"您已成功报名项目：{project.title}"},
     )
     db.commit()
     return envelope_ok(data=_enrollment_to_dict(row))
@@ -431,7 +448,7 @@ def create_enrollment(
 @supplier_router.get("/notifications")
 def list_my_notifications(
     db: DbSession,
-    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+    claims: JwtClaims = Depends(require_roles(*RBAC_SUPPLIER_PROCUREMENT)),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> dict:
@@ -439,9 +456,9 @@ def list_my_notifications(
     rows = db.execute(
         text("SELECT * FROM supplier.notification_message WHERE organization_id = :oid "
              "ORDER BY created_at DESC LIMIT :limit OFFSET :offset"),
-        {"oid": claims.sub, "limit": page_size, "offset": (page - 1) * page_size},
+        {"oid": _resolve_supplier_org(db, claims) or "", "limit": page_size, "offset": (page - 1) * page_size},
     ).all()
-    total = db.execute(text("SELECT count(*) FROM supplier.notification_message WHERE organization_id = :oid"), {"oid": claims.sub}).scalar() or 0
+    total = db.execute(text("SELECT count(*) FROM supplier.notification_message WHERE organization_id = :oid"), {"oid": _resolve_supplier_org(db, claims) or ""}).scalar() or 0
     items = [{
         "id": str(r.id), "title": r.title, "content": r.content,
         "notification_type": r.notification_type, "is_read": bool(r.is_read),
@@ -454,12 +471,12 @@ def list_my_notifications(
 def mark_notification_read(
     db: DbSession,
     nid: str,
-    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+    claims: JwtClaims = Depends(require_roles(*RBAC_SUPPLIER_PROCUREMENT)),
 ) -> dict:
     """标记消息为已读。"""
     db.execute(
         text("UPDATE supplier.notification_message SET is_read = true, read_at = :now WHERE id = :id AND organization_id = :oid"),
-        {"id": nid, "oid": claims.sub, "now": _ts()},
+        {"id": nid, "oid": _resolve_supplier_org(db, claims) or "", "now": _ts()},
     )
     db.commit()
     return envelope_ok(data={"id": nid, "is_read": True})
@@ -467,7 +484,7 @@ def mark_notification_read(
 @supplier_router.get("/workbench")
 def supplier_workbench(
     db: DbSession,
-    claims: JwtClaims = Depends(require_roles(*RBAC_ASSET_READ)),
+    claims: JwtClaims = Depends(require_roles(*RBAC_SUPPLIER_PROCUREMENT)),
 ) -> dict:
     oid = str(claims.sub)
     enroll = db.execute(text("SELECT count(*) FROM supplier.procurement_enrollment WHERE organization_id = :oid"), {"oid": oid}).scalar() or 0
